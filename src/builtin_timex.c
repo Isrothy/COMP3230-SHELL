@@ -10,7 +10,7 @@ void builtin_timex(char **arg_list) {
     if (arg_list[0] == NULL) {
         fprintf(stderr, "3230shell: \" timeX \" cannot be a standalone command");
     }
-    struct ProcInfo *result = shell_exe(arg_list);
+    struct ProcInfo *result = exe_external_cmd(arg_list);
     if (result != NULL) {
         printf(
             "(PID)%jd  (CMD)%s    (usr)%.3f s  (sys)%.3f s\n",

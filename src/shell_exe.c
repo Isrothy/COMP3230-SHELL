@@ -71,7 +71,7 @@ const char *translate_exec_error_message() {
     }
 }
 
-struct ProcInfo *shell_exe(char **arg_list) {
+struct ProcInfo *exe_external_cmd(char **arg_list) {
     sigset_t set;
     sigemptyset(&set);
     sigaddset(&set, SIGUSR1);

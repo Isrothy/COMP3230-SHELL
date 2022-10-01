@@ -10,6 +10,6 @@ struct ProcInfo {
     clock_t sys_time;
 };
 
-struct ProcInfo *shell_exe(char **arg_list);
+struct ProcInfo *exe_external_cmd(char **arg_list);
 
 #endif
