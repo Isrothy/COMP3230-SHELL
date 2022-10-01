@@ -71,7 +71,7 @@ const char *translate_exec_error_message() {
     }
 }
 
-struct ProcInfo *exe_external_cmd(char **arg_list) {
+struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
     sigset_t set;
     sigemptyset(&set);
     sigaddset(&set, SIGUSR1);
@@ -86,8 +86,13 @@ struct ProcInfo *exe_external_cmd(char **arg_list) {
     }
 
     if (child_pid == 0) {
-        int sig;
         signal(SIGINT, SIG_DFL);
+
+        dup2(in_file, 0);
+        dup2(out_file, 1);
+
+
+        int sig;
         int sig_ret = sigwait(&set, &sig);
         if (sig_ret == -1) {
             fprintf(stderr, "Invalid or unsupported signal\n");
@@ -147,4 +152,23 @@ struct ProcInfo *exe_external_cmd(char **arg_list) {
         }
         return result;
     }
+}
+
+
+struct ISRLinkedList *exe_cmds(struct CMDs *cmds) {
+    size_t num = cmds->command_list->size;
+    int *pipes = (int *) malloc((num - 1) * sizeof(int) * 2);
+
+    for (size_t i = 0; i < num - 1; ++i) {
+        pipe(pipes + 2 * i);
+    }
+    struct ISRLinkedList *results = new_isr_linked_list();
+    size_t c = 0;
+    for (struct ISRLinkedListNode *p = cmds->command_list->sentinal; p->next != NULL; p = p->next) {
+        int in = p == cmds->command_list->sentinal ? 0 : pipes[c * 2 + 1];
+        int out = p == cmds->command_list->tail ? 1 : pipes[2 * c];
+        isr_linked_list_insert_tail(results, exe_external_cmd((char **) p->value, in, out));
+    }
+    free(pipes);
+    return results;
 }

@@ -1,11 +1,11 @@
 #include "../include/builtin_exit.h"
 #include "../include/builtin_timex.h"
 #include "../include/cmd_parser.h"
+#include "../include/isr_dynamic_array.h"
 #include "../include/isr_linked_list.h"
 #include "../include/shell_exe.h"
 #include "../include/shell_io.h"
-#include <ctype.h>
-#include <errno.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,13 +24,23 @@ int main() {
         printf("%s", getPrompt());
         fflush(stdout);
         char *input = readline();
-        struct CMDs cmd;
-        int pr = parse(input, &cmd);
-        if (pr < 0) {
-            fprintf(stderr, translate_parse_error(pe));
+        struct CMDs cmds;
+        int pe = parse(input, &cmds);
+        if (pe < 0) {
+            fprintf(stderr, "%s\n", translate_parse_error(pe));
             fflush(stderr);
-        } else {
-            exe_cmds(cmds);
+        } else if (!isr_linked_list_is_empty(cmds.command_list)) {
+            char ***args = (char ***) &cmds.command_list->sentinal->next->value;
+            assert(args != NULL && !isr_dynamic_array_is_empty((void **) *args));
+            if (strcmp((*args)[0], "exit") == 0) {
+                builtin_exit(*args);
+            } else if (strcmp((*args)[0], "timeX") == 0) {
+                ++(*args);
+                builtin_timex(&cmds);
+                --(*args);
+            } else {
+                exe_cmds(&cmds);
+            }
         }
 
         // if (arg_list[0] != NULL) {
@@ -42,12 +52,7 @@ int main() {
         //         exe_external_cmd(arg_list);
         //     }
         // }
-        struct ISRLinkedListNode *p = cmds.command_list;
-        while (p->next != NULL) {
-            p = p->next;
-            free(p->value);
-        }
-
+        isr_linked_list_free(cmds.command_list, 0);
         free(input);
     }
 }

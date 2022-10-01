@@ -1,4 +1,7 @@
 #include "../include/cmd_parser.h"
+#include "../include/isr_dynamic_array.h"
+#include "../include/isr_linked_list.h"
+#include <ctype.h>
 
 const char *translate_parse_error(int pe) {
     if (pe >= 0) {
@@ -52,7 +55,7 @@ int parse(char *str, struct CMDs *cmds) {
                 return PE_START_WITH_PIPE;
             }
             if (isr_dynamic_array_is_empty((void **) args)) {
-                return PE_NO_CMD;
+                return PE_NO_CMD_AFTER_PIPE;
             }
             *str = '\0';
             isr_linked_list_insert_tail(cmds->command_list, args);
