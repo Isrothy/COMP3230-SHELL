@@ -1,5 +1,6 @@
 #include "../include/shell_io.h"
 #include <memory.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,4 +33,20 @@ char *readline() {
     }
     line[size] = '\0';
     return line;
+}
+
+void shell_output(char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    vfprintf(stdout, format, args);
+    va_end(args);
+    fflush(stdout);
+}
+
+void shell_error(char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fflush(stderr);
 }

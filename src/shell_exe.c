@@ -1,4 +1,5 @@
 #include "../include/shell_exe.h"
+#include "../include/shell_io.h"
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -71,7 +72,9 @@ const char *translate_exec_error_message() {
     }
 }
 
-int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *info) {
+int exe_an_excmd(
+    char **arg_list, int in_file, int out_file, int background, struct ProcInfo *info
+) {
     sigset_t set;
     sigemptyset(&set);
     sigaddset(&set, SIGUSR1);
@@ -80,8 +83,7 @@ int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *in
     pid_t child_pid = fork();
 
     if (child_pid < 0) {
-        fprintf(stderr, "ERROR: FORK FAILED");
-        fflush(stderr);
+        shell_error("ERROR: FORK FAILED");
         return -1;
     }
 
@@ -100,12 +102,10 @@ int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *in
         int sig;
         int sig_ret = sigwait(&set, &sig);
         if (sig_ret == -1) {
-            fprintf(stderr, "Invalid or unsupported signal\n");
-            fflush(stderr);
+            shell_error("Invalid or unsupported signal\n");
             exit(0);
         } else if (sig != SIGUSR1) {
-            fprintf(stderr, "Caught signal %d\n", sig);
-            fflush(stderr);
+            shell_error("Caught signal %d\n", sig);
             exit(0);
         }
         int exe_ret = execvp(arg_list[0], arg_list);
@@ -130,6 +130,10 @@ int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *in
 
         kill(child_pid, SIGUSR1);
 
+        if (background) {
+            return 0;
+        }
+
         int stat;
         pid_t ret = waitpid(child_pid, &stat, 0);
 
@@ -148,17 +152,14 @@ int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *in
 
 
         if (ret == -1) {
-            fprintf(stderr, "ERROR: WAITING FOR THE CHILD PROCESS. ERRNO: %d\n", errno);
-            fflush(stderr);
+            shell_error("ERROR: WAITING FOR THE CHILD PROCESS. ERRNO: %d\n", errno);
             return 0;
         }
         if (!WIFEXITED(stat)) {
             if (WIFSIGNALED(stat)) {
-                printf("'%s': killed by signal %d\n", arg_list[0], WTERMSIG(stat));
-                fflush(stdout);
+                shell_output("'%s': killed by signal %d\n", arg_list[0], WTERMSIG(stat));
             } else if (WIFSTOPPED(stat)) {
-                printf("'%s': stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
-                fflush(stdout);
+                shell_output("'%s': stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
             }
         }
         return 0;
@@ -174,8 +175,7 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
         if (p->next != NULL) {
             int r = pipe(pipes);
             if (r < 0) {
-                fprintf(stderr, "Pipe err\n");
-                fflush(stderr);
+                shell_error("Pipe err\n");
                 isr_linked_list_free(results, 1);
                 return NULL;
             }
@@ -184,7 +184,7 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
             out = 1;
         }
         struct ProcInfo *info = (struct ProcInfo *) malloc(sizeof(struct ProcInfo));
-        int re = exe_an_excmd((char **) p->value, in, out, info);
+        int re = exe_an_excmd((char **) p->value, in, out, cmds.background, info);
         if (re < 0) {
             isr_linked_list_free(results, 1);
             return NULL;

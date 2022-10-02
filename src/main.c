@@ -21,7 +21,7 @@ void handle_sig_int(int signum) {
 int main() {
     signal(SIGINT, handle_sig_int);
     while (1) {
-        printf("%s", getPrompt());
+        shell_output("%s", getPrompt());
         fflush(stdout);
         char *input = readline();
         struct CMDs cmds;
