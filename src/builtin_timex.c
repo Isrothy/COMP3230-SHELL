@@ -7,12 +7,15 @@
 #include <time.h>
 #include <unistd.h>
 
-void builtin_timex(struct CMDs *cmds) {
-    struct ISRLinkedListNode *first = cmds->command_list->sentinal->next;
+void builtin_timex(struct CMDs cmds) {
+    struct ISRLinkedListNode *first = cmds.command_list->sentinal->next;
     if (first == NULL || first->value == NULL) {
         fprintf(stderr, "3230shell: \" timeX \" cannot be a standalone command");
     }
-    struct ISRLinkedList *result = exe_cmds(cmds);
+    struct ISRLinkedList *result = exe_excmds(cmds);
+    if (result == NULL) {
+        return;
+    }
     for (struct ISRLinkedListNode *p = result->sentinal->next; p != NULL; p = p->next) {
         struct ProcInfo *info = p->value;
         assert(info != NULL);

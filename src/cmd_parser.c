@@ -46,7 +46,6 @@ int parse(char *str, struct CMDs *cmds) {
         if (isspace(*str)) {
             *str = '\0';
             in_word = 0;
-            in_pipe = 0;
         } else if (*str == '|') {
             if (has_bg) {
                 return PE_BG_IN_THE_MID;
@@ -62,6 +61,9 @@ int parse(char *str, struct CMDs *cmds) {
         } else if (*str == '&') {
             if (has_bg) {
                 return PE_MULTI_BG;
+            }
+            if (in_pipe) {
+                return PE_PIPE_EMPTY_CMD;
             }
             cmds->background = 1;
             if (!isr_dynamic_array_is_empty((void **) args)) {

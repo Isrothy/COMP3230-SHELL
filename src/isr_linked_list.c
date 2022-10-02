@@ -25,6 +25,10 @@ int isr_linked_list_is_empty(struct ISRLinkedList *list) {
     return list->size == 0;
 }
 
+struct ISRLinkedListNode *isr_linked_list_head(struct ISRLinkedList *list) {
+    return list->sentinal->next;
+}
+
 void isr_linked_list_free(struct ISRLinkedList *list, int deep) {
     struct ISRLinkedListNode *p = list->sentinal->next;
     while (p != NULL) {
@@ -38,10 +42,3 @@ void isr_linked_list_free(struct ISRLinkedList *list, int deep) {
     free(list->sentinal);
     free(list);
 }
-
-// struct ISRLinkedList *insertHead(struct ISRLinkedList *head, void *value) {
-//     struct ISRLinkedList *new_head = (struct ISRLinkedList *) malloc(sizeof(struct ISRLinkedList));
-//     new_head->next = head;
-//     new_head->value = value;
-//     return new_head;
-// }

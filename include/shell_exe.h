@@ -12,8 +12,8 @@ struct ProcInfo {
     clock_t sys_time;
 };
 
-struct ProcInfo *exe_external_cmd(char **arg_list, int pipe_in, int pipe_out);
+int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *info);
 
-struct ISRLinkedList *exe_cmds(struct CMDs *cmds);
+struct ISRLinkedList *exe_excmds(struct CMDs cmds);
 
 #endif

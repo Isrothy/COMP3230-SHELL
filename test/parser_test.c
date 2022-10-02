@@ -20,7 +20,7 @@ void print_commands(struct CMDs cmds) {
 int main() {
     struct CMDs cmds;
     char *input = (char *) malloc(100 * sizeof(char));
-    strcpy(input, "timeX ls -la | wc -l|cut -f2 &");
+    strcpy(input, "timeX ls -la | wc -l|cut -f2 | &");
     int result = parse(input, &cmds);
     if (result < 0) {
         puts(translate_parse_error(result));

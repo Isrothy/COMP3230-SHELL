@@ -3,6 +3,6 @@
 
 #include "cmd_parser.h"
 
-void builtin_timex(struct CMDs *cmds);
+void builtin_timex(struct CMDs cmds);
 
 #endif

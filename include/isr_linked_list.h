@@ -19,6 +19,8 @@ void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value);
 
 int isr_linked_list_is_empty(struct ISRLinkedList *list);
 
+struct ISRLinkedListNode *isr_linked_list_head(struct ISRLinkedList *list);
+
 void isr_linked_list_free(struct ISRLinkedList *list, int deep);
 
 #endif

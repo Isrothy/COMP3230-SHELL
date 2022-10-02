@@ -71,7 +71,7 @@ const char *translate_exec_error_message() {
     }
 }
 
-struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
+int exe_an_excmd(char **arg_list, int in_file, int out_file, struct ProcInfo *info) {
     sigset_t set;
     sigemptyset(&set);
     sigaddset(&set, SIGUSR1);
@@ -82,15 +82,20 @@ struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
     if (child_pid < 0) {
         fprintf(stderr, "ERROR: FORK FAILED");
         fflush(stderr);
-        return NULL;
+        return -1;
     }
 
     if (child_pid == 0) {
         signal(SIGINT, SIG_DFL);
 
-        dup2(in_file, 0);
-        dup2(out_file, 1);
-
+        if (in_file != 0) {
+            dup2(in_file, 0);
+            close(in_file);
+        }
+        if (out_file != 1) {
+            dup2(out_file, 1);
+            close(out_file);
+        }
 
         int sig;
         int sig_ret = sigwait(&set, &sig);
@@ -113,6 +118,13 @@ struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
     } else {
         signal(SIGINT, SIG_IGN);
 
+        if (in_file != 0) {
+            close(in_file);
+        }
+        if (out_file != 1) {
+            close(out_file);
+        }
+
         struct tms st_cpu;
         times(&st_cpu);
 
@@ -127,8 +139,7 @@ struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
         fflush(stderr);
         fflush(stdout);
 
-        struct ProcInfo *result = (struct ProcInfo *) malloc(sizeof(struct ProcInfo));
-        *result = (struct ProcInfo){
+        *info = (struct ProcInfo){
             child_pid,
             arg_list[0],
             ed_cpu.tms_cutime - st_cpu.tms_cutime,
@@ -139,7 +150,7 @@ struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
         if (ret == -1) {
             fprintf(stderr, "ERROR: WAITING FOR THE CHILD PROCESS. ERRNO: %d\n", errno);
             fflush(stderr);
-            return result;
+            return 0;
         }
         if (!WIFEXITED(stat)) {
             if (WIFSIGNALED(stat)) {
@@ -150,30 +161,38 @@ struct ProcInfo *exe_external_cmd(char **arg_list, int in_file, int out_file) {
                 fflush(stdout);
             }
         }
-        return result;
+        return 0;
     }
 }
 
 
-struct ISRLinkedList *exe_cmds(struct CMDs *cmds) {
-    size_t num = cmds->command_list->size;
-    int *pipes = (int *) malloc((num - 1) * sizeof(int) * 2);
-
-    for (size_t i = 0; i < num - 1; ++i) {
-        int e = pipe(pipes + 2 * i);
-        if (e < 0) {
-            fprintf(stderr, "pipe error");
-            fflush(stderr);
+struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
+    struct ISRLinkedList *results = new_isr_linked_list();
+    int in = 0, out = 1;
+    int pipes[2];
+    for (struct ISRLinkedListNode *p = cmds.command_list->sentinal->next; p != NULL; p = p->next) {
+        if (p->next != NULL) {
+            int r = pipe(pipes);
+            if (r < 0) {
+                fprintf(stderr, "Pipe err\n");
+                fflush(stderr);
+                isr_linked_list_free(results, 1);
+                return NULL;
+            }
+            out = pipes[1];
+        } else {
+            out = 1;
+        }
+        struct ProcInfo *info = (struct ProcInfo *) malloc(sizeof(struct ProcInfo));
+        int re = exe_an_excmd((char **) p->value, in, out, info);
+        if (re < 0) {
+            isr_linked_list_free(results, 1);
             return NULL;
         }
+        isr_linked_list_insert_tail(results, info);
+        if (p->next != NULL) {
+            in = pipes[0];
+        }
     }
-    struct ISRLinkedList *results = new_isr_linked_list();
-    size_t c = 0;
-    for (struct ISRLinkedListNode *p = cmds->command_list->sentinal; p->next != NULL; p = p->next) {
-        int in = p == cmds->command_list->sentinal ? 0 : pipes[c * 2 + 1];
-        int out = p == cmds->command_list->tail ? 1 : pipes[2 * c];
-        isr_linked_list_insert_tail(results, exe_external_cmd((char **) p->value, in, out));
-    }
-    free(pipes);
     return results;
 }

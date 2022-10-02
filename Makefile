@@ -10,7 +10,9 @@ CSSHELL=bin/3230SHELL\
 		build/shell_exe.o
 
 TESTS=biuld/parser_test.o\
-	  bin/parser_test
+	  build/shell_exe_test.o\
+	  bin/parser_test\
+	  bin/shell_exe_test
 
 all: $(CSSHELL) $(TESTS)
 
@@ -61,11 +63,22 @@ build/parser_test.o: test/parser_test.c
 	$(CC) $< -c $(FLAG)
 	mv parser_test.o build
 
+build/shell_exe_test.o: test/shell_exe_test.c
+	$(CC) $< -c $(FLAG)
+	mv shell_exe_test.o build
+
 bin/parser_test: build/parser_test.o\
 				 build/cmd_parser.o\
 				 build/isr_linked_list.o\
 				 build/isr_dynamic_array.o
 	$(CC) $^ -o bin/parser_test $(FLAG)
+
+bin/shell_exe_test: build/shell_exe_test.o\
+				    build/cmd_parser.o\
+					build/isr_dynamic_array.o\
+					build/isr_linked_list.o\
+					build/shell_exe.o
+	$(CC) $^ -o bin/shell_exe_test $(FLAG)
 
 clean:
 	rm build/* bin/*
