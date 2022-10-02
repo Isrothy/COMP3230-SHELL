@@ -1,9 +1,12 @@
 #include "../include/isr_dynamic_array.h"
 
 #include <stdlib.h>
+#define ISR_DYNAMIC_ARRAY_INITIAL_CAPACITY 8
 
-void isr_dynamic_array_init(void ***arr, size_t capacity) {
-    *arr = (void **) malloc(capacity * sizeof(void *));
+void isr_dynamic_array_init(void ***arr, size_t *capacity, size_t *size) {
+    *capacity = ISR_DYNAMIC_ARRAY_INITIAL_CAPACITY;
+    *size = 0;
+    *arr = (void **) malloc(*capacity * sizeof(void *));
     *arr[0] = NULL;
 }
 

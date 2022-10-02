@@ -160,7 +160,12 @@ struct ISRLinkedList *exe_cmds(struct CMDs *cmds) {
     int *pipes = (int *) malloc((num - 1) * sizeof(int) * 2);
 
     for (size_t i = 0; i < num - 1; ++i) {
-        pipe(pipes + 2 * i);
+        int e = pipe(pipes + 2 * i);
+        if (e < 0) {
+            fprintf(stderr, "pipe error");
+            fflush(stderr);
+            return NULL;
+        }
     }
     struct ISRLinkedList *results = new_isr_linked_list();
     size_t c = 0;

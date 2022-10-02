@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-void isr_dynamic_array_init(void ***arr, size_t capacity);
+void isr_dynamic_array_init(void ***arr, size_t *capacity, size_t *size);
 
 void isr_dynamic_array_push_back(void ***arr, void *value, size_t *capacity, size_t *length);
 

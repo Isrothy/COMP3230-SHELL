@@ -1,10 +1,11 @@
 #ifndef C3230_CMD_PARSER
 #define C3230_CMD_PARSER
 
-#define PE_START_WITH_PIPE (-1)
+#include "isr_linked_list.h"
+
 #define PE_BG_IN_THE_MID (-2)
 #define PE_MULTI_BG (-3)
-#define PE_NO_CMD_AFTER_PIPE (-4)
+#define PE_PIPE_EMPTY_CMD (-4)
 
 struct CMDs {
     int background;
