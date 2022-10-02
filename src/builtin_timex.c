@@ -9,8 +9,15 @@
 
 void builtin_timex(struct CMDs cmds) {
     struct ISRLinkedListNode *first = cmds.command_list->sentinal->next;
-    if (first == NULL || first->value == NULL) {
-        fprintf(stderr, "3230shell: \" timeX \" cannot be a standalone command");
+    if (first == NULL || first->value == NULL || ((char **) (first->value))[0] == NULL) {
+        fprintf(stderr, "3230shell: \" timeX \" cannot be a standalone command\n");
+        fflush(stderr);
+        return;
+    }
+    if (cmds.background) {
+        fprintf(stderr, "3230shell: \"timeX\" cannot be run in background mode\n");
+        fflush(stderr);
+        return;
     }
     struct ISRLinkedList *result = exe_excmds(cmds);
     if (result == NULL) {
