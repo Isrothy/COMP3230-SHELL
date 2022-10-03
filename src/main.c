@@ -15,6 +15,10 @@ void handle_sig_int(int signum) {
     shell_output("\n%s", getPrompt());
 }
 
+void handle_sig_tstp(int signum) {
+    shell_output("\n%s", getPrompt());
+}
+
 void handle_sig_chld(int signum) {
     sigset_t set, oset;
     sigemptyset(&set);
@@ -42,6 +46,7 @@ void handle_sig_chld(int signum) {
 
 int main() {
     signal(SIGINT, handle_sig_int);
+    signal(SIGTSTP, handle_sig_tstp);
     signal(SIGCHLD, handle_sig_chld);
     proc_mag_init();
     while (1) {

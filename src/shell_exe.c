@@ -3,6 +3,7 @@
 #include "../include/shell_io.h"
 #include <bits/types/sigset_t.h>
 #include <errno.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <sys/times.h>
 #include <sys/wait.h>
@@ -91,6 +92,7 @@ int exe_an_excmd(
     if (child_pid == 0) {
         if (!background) {
             signal(SIGINT, SIG_DFL);
+            signal(SIGTSTP, SIG_DFL);
         }
         signal(SIGCHLD, SIG_DFL);
 
@@ -175,9 +177,28 @@ int exe_an_excmd(
                 }
                 if (!WIFEXITED(stat)) {
                     if (WIFSIGNALED(stat)) {
-                        shell_output("'%s': killed by signal %d\n", arg_list[0], WTERMSIG(stat));
+                        switch (WTERMSIG(stat)) {
+                            case SIGINT: {
+                                shell_output(
+                                    "'%s': Interrupt by signal %d\n", arg_list[0], WTERMSIG(stat)
+                                );
+                                break;
+                            }
+                            case SIGKILL: {
+                                shell_output(
+                                    "'%s': Killed by signal %d\n", arg_list[0], WTERMSIG(stat)
+                                );
+                                break;
+                            }
+                            default: {
+                                shell_output(
+                                    "'%s': Terminated by signal %d\n", arg_list[0], WTERMSIG(stat)
+                                );
+                                break;
+                            }
+                        }
                     } else if (WIFSTOPPED(stat)) {
-                        shell_output("'%s': stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
+                        shell_output("'%s': Stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
                     }
                 }
                 sigprocmask(SIG_SETMASK, &oset, NULL);
