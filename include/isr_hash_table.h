@@ -27,7 +27,9 @@ isr_hash_table_new(size_t (*hash_func)(void *), int (*id_func)(void *, void *));
 
 void isr_hash_table_insert(struct ISRHashTable *table, void *key, void *value);
 
-int isr_hash_table_remove(struct ISRHashTable *table, void *key);
+struct ISRHashTableEntity *isr_hash_table_remove(struct ISRHashTable *table, void *key);
+
+void isr_hash_table_remove_dum(struct ISRHashTable *table, void *key);
 
 void *isr_hash_table_find(struct ISRHashTable *table, void *key);
 

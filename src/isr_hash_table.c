@@ -44,12 +44,10 @@ void isr_hash_table_resize(struct ISRHashTable *table, size_t new_capacity) {
         struct ISRLinkedList *l = table->lists[i];
         ISRLinkedListForEach(p, l) {
             struct ISRHashTableEntity *e = p->value;
-            // printf("%lu %lu %lu\n", i, e->hash_value, e->hash_value % new_capacity);
             isr_linked_list_insert_tail(new_lists[e->hash_value % new_capacity], e);
         }
         isr_linked_list_free(l, 0);
     }
-    // printf("%lu\n", new_capacity);
     free(table->lists);
     table->lists = new_lists;
     table->capacity = new_capacity;
@@ -71,7 +69,6 @@ void isr_hash_table_insert(struct ISRHashTable *table, void *key, void *value) {
     *entity = (struct ISRHashTableEntity){key, value, hash_value};
     isr_linked_list_insert_tail(table->lists[index], entity);
     ++table->size;
-    // printf("%lu %lu\n", hash_value, index);
     if (table->size > table->capacity * ISR_HASH_TABLE_ALPHA) {
         isr_hash_table_resize(table, find_next_prime(table->capacity * 2));
     }
@@ -91,7 +88,7 @@ void *isr_hash_table_find(struct ISRHashTable *table, void *key) {
 }
 
 
-int isr_hash_table_remove(struct ISRHashTable *table, void *key) {
+struct ISRHashTableEntity *isr_hash_table_remove(struct ISRHashTable *table, void *key) {
     size_t hash_value = table->hash_func(key);
     size_t index = hash_value % table->capacity;
     struct ISRLinkedList *l = table->lists[index];
@@ -99,17 +96,22 @@ int isr_hash_table_remove(struct ISRHashTable *table, void *key) {
         struct ISRHashTableEntity *e = p->value;
         if (table->id_func(e->key, key)) {
             isr_linked_list_del(l, p);
-            free(e);
             --table->size;
             if (table->capacity > 15 && table->size < table->capacity * ISR_HASH_TABLE_BETA) {
                 isr_hash_table_resize(table, find_next_prime(table->capacity / 2));
             }
-            return 1;
+            return e;
         }
     }
-    return 0;
+    return NULL;
 }
 
+void isr_hash_table_remove_dum(struct ISRHashTable *table, void *key) {
+    struct ISRHashTableEntity *e = isr_hash_table_remove(table, key);
+    if (e != NULL) {
+        free(e);
+    }
+}
 
 int isr_hash_table_contains(struct ISRHashTable *table, void *key) {
     return isr_hash_table_find(table, key) != NULL;

@@ -21,13 +21,8 @@ void proc_mag_init() {
 }
 
 void proc_add(pid_t pid, char *cmd, int bg) {
-
-    // shell_error("***%d*** inseted\n", pid);
-
-
     pid_t *key = malloc(sizeof(pid_t));
     *key = pid;
-    // shell_error("%d\n", *((pid_t *) (key)));
     char *new_cmd = malloc(strlen(cmd) * sizeof(char));
     strcpy(new_cmd, cmd);
     struct ProcInfo *info = malloc(sizeof(struct ProcInfo));
@@ -36,13 +31,14 @@ void proc_add(pid_t pid, char *cmd, int bg) {
 }
 
 struct ProcInfo *proc_query(pid_t pid) {
-    // shell_error("***%d*** queried\n", pid);
     return isr_hash_table_find(ptb, &pid);
 }
 
 void proc_del(pid_t pid) {
-    // shell_error("***%d*** removed\n", pid);
-    isr_hash_table_remove(ptb, &pid);
+    struct ISRHashTableEntity *e = isr_hash_table_remove(ptb, &pid);
+    struct ProcInfo *info = e->value;
+    free(info->cmd);
+    free(e);
 }
 
 void proc_mag_free() {

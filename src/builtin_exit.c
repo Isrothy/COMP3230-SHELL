@@ -1,4 +1,5 @@
 #include "../include/builtin_exit.h"
+#include "../include/proc_mag.h"
 #include "../include/shell_io.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,7 @@ void builtin_exit(char **arg_list) {
         shell_output("\"exit\" with other arguments!!!\n");
     } else {
         shell_output("3230shell: Terminated\n");
+        proc_mag_free();
         exit(0);
     }
 }

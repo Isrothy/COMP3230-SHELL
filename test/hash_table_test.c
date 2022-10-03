@@ -39,7 +39,7 @@ int main() {
     assert(*((int *) isr_hash_table_find(table, key)) == *value);
 
     for (int i = 0; i < 11; ++i) {
-        isr_hash_table_remove(table, &k[i]);
+        isr_hash_table_remove_dum(table, &k[i]);
     }
     for (int i = 0; i < 11; ++i) {
         assert(!isr_hash_table_contains(table, &k[i]));
