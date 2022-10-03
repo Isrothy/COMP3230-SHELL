@@ -12,7 +12,7 @@ char const *getPrompt() {
 char *readline() {
     size_t capacity = 64;
     size_t size = 0;
-    char *line = (char *) malloc(capacity * sizeof(char));
+    char *line = malloc(capacity * sizeof(char));
     if (line == NULL) {
         return NULL;
     }
@@ -24,7 +24,7 @@ char *readline() {
         line[size] = c;
         ++size;
         if (size + 1 == capacity) {
-            line = (char *) realloc(line, capacity * 2 * sizeof(char));
+            line = realloc(line, capacity * 2 * sizeof(char));
             if (line == NULL) {
                 return NULL;
             }

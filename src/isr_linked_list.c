@@ -2,9 +2,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-struct ISRLinkedList *new_isr_linked_list() {
-    struct ISRLinkedList *new_list = (struct ISRLinkedList *) malloc(sizeof(struct ISRLinkedList));
-    new_list->sentinal = (struct ISRLinkedListNode *) malloc(sizeof(struct ISRLinkedListNode));
+struct ISRLinkedList *isr_linked_list_new() {
+    struct ISRLinkedList *new_list = malloc(sizeof(struct ISRLinkedList));
+    new_list->sentinal = malloc(sizeof(struct ISRLinkedListNode));
     new_list->sentinal->value = NULL;
     new_list->sentinal->next = NULL;
     new_list->tail = new_list->sentinal;
@@ -14,7 +14,7 @@ struct ISRLinkedList *new_isr_linked_list() {
 
 void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value) {
     assert(list != NULL);
-    list->tail->next = (struct ISRLinkedListNode *) malloc(sizeof(struct ISRLinkedListNode));
+    list->tail->next = malloc(sizeof(struct ISRLinkedListNode));
     list->tail->next->value = value;
     list->tail->next->next = NULL;
     list->tail = list->tail->next;

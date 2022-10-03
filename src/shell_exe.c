@@ -185,7 +185,7 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
         } else {
             out = 1;
         }
-        struct ProcInfo *info = (struct ProcInfo *) malloc(sizeof(struct ProcInfo));
+        struct ProcInfo *info = malloc(sizeof(struct ProcInfo));
         int re = exe_an_excmd((char **) p->value, in, out, cmds.background, info);
         if (re < 0) {
             isr_linked_list_free(results, 1);
