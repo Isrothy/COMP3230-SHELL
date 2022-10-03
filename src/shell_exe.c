@@ -95,11 +95,11 @@ int exe_an_excmd(
             signal(SIGINT, SIG_DFL);
         }
         signal(SIGCHLD, SIG_DFL);
-        if (!sigismember(&oset, SIGCHLD)) {
-            sigset_t s;
-            sigaddset(&s, SIGCHLD);
-            sigprocmask(SIG_UNBLOCK, &s, NULL);
-        }
+        // if (!sigismember(&oset, SIGCHLD)) {
+        //     sigset_t s;
+        //     sigaddset(&s, SIGCHLD);
+        //     sigprocmask(SIG_UNBLOCK, &s, NULL);
+        // }
 
         if (in_file != 0) {
             dup2(in_file, 0);
@@ -149,6 +149,7 @@ int exe_an_excmd(
         kill(child_pid, SIGUSR1);
 
         if (background) {
+            sigprocmask(SIG_SETMASK, &oset, NULL);
             return 0;
         }
 
@@ -160,7 +161,6 @@ int exe_an_excmd(
                 shell_error(
                     "What the f**k? I can find this pid in running processes. PID: %d\n", pid
                 );
-                shell_error("child pid: %d\n", child_pid);
             }
             if (pid == child_pid) {
                 struct tms ed_cpu;
@@ -206,8 +206,8 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
     struct ISRLinkedList *results = isr_linked_list_new();
     int in = 0, out = 1;
     int pipes[2];
-    for (struct ISRLinkedListNode *p = cmds.command_list->sentinal->next; p != NULL; p = p->next) {
-        if (p->next != NULL) {
+    ISRLinkedListForEach(p, cmds.command_list) {
+        if (p->next != cmds.command_list->sentinal) {
             int r = pipe(pipes);
             if (r < 0) {
                 shell_error("Pipe err\n");
@@ -218,14 +218,14 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
         } else {
             out = 1;
         }
-        struct ExeRet *info = malloc(sizeof(struct ExeRet));
-        int re = exe_an_excmd((char **) p->value, in, out, cmds.background, info);
+        struct ExeRet *exe_ret = malloc(sizeof(struct ExeRet));
+        int re = exe_an_excmd((char **) p->value, in, out, cmds.background, exe_ret);
         if (re < 0) {
             isr_linked_list_free(results, 1);
             return NULL;
         }
-        isr_linked_list_insert_tail(results, info);
-        if (p->next != NULL) {
+        isr_linked_list_insert_tail(results, exe_ret);
+        if (p->next != cmds.command_list->sentinal) {
             in = pipes[0];
         }
     }

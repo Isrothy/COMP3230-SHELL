@@ -5,12 +5,12 @@
 struct ISRLinkedListNode {
     void *value;
     struct ISRLinkedListNode *next;
+    struct ISRLinkedListNode *prev;
 };
 
 struct ISRLinkedList {
     size_t size;
     struct ISRLinkedListNode *sentinal;
-    struct ISRLinkedListNode *tail;
 };
 
 struct ISRLinkedList *isr_linked_list_new();
@@ -19,8 +19,11 @@ void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value);
 
 int isr_linked_list_is_empty(struct ISRLinkedList *list);
 
-struct ISRLinkedListNode *isr_linked_list_head(struct ISRLinkedList *list);
+void *isr_linked_list_del(struct ISRLinkedList *list, struct ISRLinkedListNode *p);
 
 void isr_linked_list_free(struct ISRLinkedList *list, int deep);
+
+#define ISRLinkedListForEach(p, l)                                                                 \
+    for (struct ISRLinkedListNode *p = (l)->sentinal->next; p != (l)->sentinal; p = p->next)
 
 #endif

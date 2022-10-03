@@ -4,6 +4,7 @@
 #include "isr_linked_list.h"
 #include <stddef.h>
 
+#define ISR_HASH_TABLE_INIT_CAP (7)
 #define ISR_HASH_TABLE_ALPHA (0.75)
 #define ISR_HASH_TABLE_BETA (0.25)
 

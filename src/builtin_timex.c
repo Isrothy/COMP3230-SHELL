@@ -22,8 +22,8 @@ void builtin_timex(struct CMDs cmds) {
     if (result == NULL) {
         return;
     }
-    for (struct ISRLinkedListNode *p = result->sentinal->next; p != NULL; p = p->next) {
-        struct ProcInfo *info = p->value;
+    ISRLinkedListForEach(p, result) {
+        struct ExeRet *info = p->value;
         assert(info != NULL);
         shell_output(
             "(PID)%jd  (CMD)%s    (usr)%.3f s  (sys)%.3f s\n",
