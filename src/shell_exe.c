@@ -3,8 +3,6 @@
 #include "../include/shell_io.h"
 #include <bits/types/sigset_t.h>
 #include <errno.h>
-#include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <sys/times.h>
 #include <sys/wait.h>
@@ -95,11 +93,6 @@ int exe_an_excmd(
             signal(SIGINT, SIG_DFL);
         }
         signal(SIGCHLD, SIG_DFL);
-        // if (!sigismember(&oset, SIGCHLD)) {
-        //     sigset_t s;
-        //     sigaddset(&s, SIGCHLD);
-        //     sigprocmask(SIG_UNBLOCK, &s, NULL);
-        // }
 
         if (in_file != 0) {
             dup2(in_file, 0);
@@ -121,8 +114,7 @@ int exe_an_excmd(
         }
         int exe_ret = execvp(arg_list[0], arg_list);
         if (exe_ret < 0) {
-            fprintf(stderr, "'%s': %s\n", arg_list[0], translate_exec_error_message());
-            fflush(stderr);
+            shell_error("'%s': %s\n", arg_list[0], translate_exec_error_message());
         }
 
         exit(0);
@@ -165,9 +157,6 @@ int exe_an_excmd(
             if (pid == child_pid) {
                 struct tms ed_cpu;
                 times(&ed_cpu);
-
-                fflush(stderr);
-                fflush(stdout);
 
                 proc_del(pid);
 

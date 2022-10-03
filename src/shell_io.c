@@ -1,5 +1,4 @@
 #include "../include/shell_io.h"
-#include <memory.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>

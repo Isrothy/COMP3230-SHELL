@@ -1,6 +1,4 @@
 #include "../include/isr_linked_list.h"
-#include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 struct ISRLinkedList *isr_linked_list_new() {
@@ -16,7 +14,6 @@ struct ISRLinkedList *isr_linked_list_new() {
 }
 
 void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value) {
-    assert(list != NULL);
     struct ISRLinkedListNode *p = malloc(sizeof(struct ISRLinkedListNode));
     *p = (struct ISRLinkedListNode){
         value,

@@ -1,6 +1,4 @@
 #include "../include/isr_hash_table.h"
-#include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 struct ISRHashTable *

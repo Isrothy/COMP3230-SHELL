@@ -2,7 +2,6 @@
 #include "../include/isr_dynamic_array.h"
 #include "../include/isr_linked_list.h"
 #include <ctype.h>
-#include <stdio.h>
 #include <string.h>
 
 const char *translate_parse_error(int pe) {

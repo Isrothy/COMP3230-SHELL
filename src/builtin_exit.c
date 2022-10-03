@@ -1,7 +1,6 @@
 #include "../include/builtin_exit.h"
 #include "../include/proc_mag.h"
 #include "../include/shell_io.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 void builtin_exit(char **arg_list) {
