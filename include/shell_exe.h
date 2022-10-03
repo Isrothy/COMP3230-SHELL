@@ -16,4 +16,6 @@ int exe_an_excmd(char **arg_list, int in_file, int out_file, int background, str
 
 struct ISRLinkedList *exe_excmds(struct CMDs cmds);
 
+int release_child();
+
 #endif

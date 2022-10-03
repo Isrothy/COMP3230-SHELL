@@ -27,7 +27,7 @@ const char *translate_parse_error(int pe) {
 
 int parse(char *str, struct CMDs *cmds) {
     cmds->background = 0;
-    cmds->command_list = new_isr_linked_list();
+    cmds->command_list = isr_linked_list_new();
     while (*str != '\0' && isspace(*str)) {
         ++str;
     }

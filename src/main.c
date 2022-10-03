@@ -18,8 +18,16 @@ void handle_sig_int(int signum) {
     fflush(stdout);
 }
 
+void handle_sig_chld(int signum) {
+    int rt = release_child();
+    if (rt != -1) {
+        shell_output("%s", getPrompt());
+    }
+}
+
 int main() {
     signal(SIGINT, handle_sig_int);
+    signal(SIGCHLD, handle_sig_chld);
     while (1) {
         shell_output("%s", getPrompt());
         fflush(stdout);
@@ -27,8 +35,7 @@ int main() {
         struct CMDs cmds;
         int pe = parse(input, &cmds);
         if (pe < 0) {
-            fprintf(stderr, "%s\n", translate_parse_error(pe));
-            fflush(stderr);
+            shell_error("%s\n", translate_parse_error(pe));
         } else if (!isr_linked_list_is_empty(cmds.command_list)) {
             char ***args = (char ***) &cmds.command_list->sentinal->next->value;
             assert(args != NULL && !isr_dynamic_array_is_empty((void **) *args));

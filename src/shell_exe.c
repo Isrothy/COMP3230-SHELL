@@ -88,7 +88,9 @@ int exe_an_excmd(
     }
 
     if (child_pid == 0) {
-        signal(SIGINT, SIG_DFL);
+        if (!background) {
+            signal(SIGINT, SIG_DFL);
+        }
 
         if (in_file != 0) {
             dup2(in_file, 0);
@@ -152,7 +154,7 @@ int exe_an_excmd(
 
 
         if (ret == -1) {
-            shell_error("ERROR: WAITING FOR THE CHILD PROCESS. ERRNO: %d\n", errno);
+            shell_error("Error: waiting for the child process. errno: %d\n", errno);
             return 0;
         }
         if (!WIFEXITED(stat)) {
@@ -168,7 +170,7 @@ int exe_an_excmd(
 
 
 struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
-    struct ISRLinkedList *results = new_isr_linked_list();
+    struct ISRLinkedList *results = isr_linked_list_new();
     int in = 0, out = 1;
     int pipes[2];
     for (struct ISRLinkedListNode *p = cmds.command_list->sentinal->next; p != NULL; p = p->next) {
@@ -195,4 +197,24 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
         }
     }
     return results;
+}
+
+char *find_cmd_name(pid_t pid) {
+    return "haha";
+}
+
+int release_child() {
+    int stat;
+    pid_t pid = wait(&stat);
+    if (pid == -1) {
+        return -1;
+    }
+    if (WIFEXITED(stat)) {
+        shell_output("\n[%d] %s Done\n", pid, find_cmd_name(pid));
+    } else if (WIFSIGNALED(stat)) {
+        shell_output("\n[%d] %s Terminated\n", pid, find_cmd_name(pid));
+    } else if (WIFSTOPPED(stat)) {
+        shell_output("\n[%d] %s Stopped\n", pid, find_cmd_name(pid));
+    }
+    return 0;
 }

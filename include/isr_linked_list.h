@@ -13,7 +13,7 @@ struct ISRLinkedList {
     struct ISRLinkedListNode *tail;
 };
 
-struct ISRLinkedList *new_isr_linked_list();
+struct ISRLinkedList *isr_linked_list_new();
 
 void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value);
 
