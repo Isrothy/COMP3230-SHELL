@@ -15,8 +15,14 @@ const char *translate_parse_error(int pe) {
         case PE_MULTI_BG: {
             return "'&' should only appear once";
         }
-        case PE_PIPE_EMPTY_CMD: {
-            return "No command before/after a pip";
+        case PE_ST_PIPE: {
+            return "Should not start with '|'";
+        }
+        case PE_ED_PIPE: {
+            return "Should not end with '|'";
+        }
+        case PE_CONS_PIPE: {
+            return "Should not have two consecutive | without in-between command";
         }
         default: {
             return "Unkown error";
@@ -41,6 +47,7 @@ int parse(char *str, struct CMDs *cmds) {
     int has_bg = 0;
     int in_word = 0;
     int in_pipe = 0;
+    int first = 1;
     while (*str != '\0') {
         if (isspace(*str)) {
             *str = '\0';
@@ -49,12 +56,16 @@ int parse(char *str, struct CMDs *cmds) {
             if (has_bg) {
                 return PE_BG_IN_THE_MID;
             }
-            if (isr_dynamic_array_is_empty((void **) args)) {
-                return PE_PIPE_EMPTY_CMD;
+            if (in_pipe) {
+                return PE_CONS_PIPE;
+            }
+            if (first) {
+                return PE_ST_PIPE;
             }
             *str = '\0';
             isr_linked_list_insert_tail(cmds->command_list, args);
             isr_dynamic_array_init((void ***) (&args), &capacity, &size);
+            first = 0;
             in_word = 0;
             in_pipe = 1;
         } else if (*str == '&') {
@@ -62,7 +73,7 @@ int parse(char *str, struct CMDs *cmds) {
                 return PE_MULTI_BG;
             }
             if (in_pipe) {
-                return PE_PIPE_EMPTY_CMD;
+                return PE_ED_PIPE;
             }
             cmds->background = 1;
             if (!isr_dynamic_array_is_empty((void **) args)) {
@@ -70,6 +81,7 @@ int parse(char *str, struct CMDs *cmds) {
                 isr_dynamic_array_init((void ***) (&args), &capacity, &size);
             }
             has_bg = 1;
+            first = 0;
             in_word = 0;
             in_pipe = 0;
             *str = '\0';
@@ -80,13 +92,14 @@ int parse(char *str, struct CMDs *cmds) {
             if (!in_word) {
                 isr_dynamic_array_push_back((void ***) &args, (void *) str, &capacity, &size);
             }
+            first = 0;
             in_word = 1;
             in_pipe = 0;
         }
         ++str;
     }
     if (in_pipe) {
-        return PE_PIPE_EMPTY_CMD;
+        return PE_ED_PIPE;
     }
     if (!isr_dynamic_array_is_empty((void **) args)) {
         isr_linked_list_insert_tail(cmds->command_list, args);

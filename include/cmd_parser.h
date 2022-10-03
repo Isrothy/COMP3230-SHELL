@@ -3,9 +3,11 @@
 
 #include "isr_linked_list.h"
 
-#define PE_BG_IN_THE_MID (-2)
-#define PE_MULTI_BG (-3)
-#define PE_PIPE_EMPTY_CMD (-4)
+#define PE_CONS_PIPE (-1)
+#define PE_ST_PIPE (-2)
+#define PE_ED_PIPE (-3)
+#define PE_BG_IN_THE_MID (-4)
+#define PE_MULTI_BG (-5)
 
 struct CMDs {
     int background;
