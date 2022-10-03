@@ -14,7 +14,7 @@ void isr_dynamic_array_push_back(void ***arr, void *value, size_t *capacity, siz
     (*arr)[*length] = value;
     ++(*length);
     if (*length + 1 == *capacity) {
-        *arr = realloc(arr, *capacity * 2 * sizeof(void *));
+        *arr = realloc(*arr, *capacity * 2 * sizeof(void *));
         *capacity *= 2;
     }
     (*arr)[*length] = NULL;
