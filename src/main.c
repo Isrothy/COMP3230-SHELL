@@ -3,9 +3,11 @@
 #include "../include/cmd_parser.h"
 #include "../include/isr_dynamic_array.h"
 #include "../include/isr_linked_list.h"
+#include "../include/proc_mag.h"
 #include "../include/shell_exe.h"
 #include "../include/shell_io.h"
 #include <assert.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,15 +21,34 @@ void handle_sig_int(int signum) {
 }
 
 void handle_sig_chld(int signum) {
-    int rt = release_child();
-    if (rt != -1) {
-        shell_output("%s", getPrompt());
+    sigset_t set, oset;
+    sigemptyset(&set);
+    sigaddset(&set, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &set, &oset);
+
+    int stat;
+    pid_t pid = waitpid(0, &stat, WNOHANG);
+    if (pid <= 0) {
+        return;
     }
+    struct ProcInfo *info = proc_query(pid);
+    if (info == NULL) {
+        return;
+    }
+    if (!info->bg) {
+        shell_error("What the f**k? This should run in background\n");
+    }
+    shell_output("\n");
+    bgchild_notify(stat, info);
+    shell_output("%s", getPrompt());
+    proc_del(pid);
+    sigprocmask(SIG_BLOCK, &oset, NULL);
 }
 
 int main() {
     signal(SIGINT, handle_sig_int);
     signal(SIGCHLD, handle_sig_chld);
+    proc_mag_init();
     while (1) {
         shell_output("%s", getPrompt());
         fflush(stdout);

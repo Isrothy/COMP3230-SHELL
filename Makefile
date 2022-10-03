@@ -9,6 +9,7 @@ CSSHELL=bin/3230SHELL\
 		build/builtin_timex.o\
 		build/cmd_parser.o\
 		build/shell_exe.o\
+		build/proc_mag.o\
 		build/main.o
 
 TESTS=biuld/parser_test.o\
@@ -52,6 +53,10 @@ build/shell_exe.o: src/shell_exe.c
 	$(CC) $< -c $(FLAG)
 	mv shell_exe.o build
 
+build/proc_mag.o: src/proc_mag.c
+	$(CC) $< -c $(FLAG)
+	mv proc_mag.o build
+
 build/main.o: src/main.c
 	$(CC) $< -c $(FLAG)
 	mv main.o build
@@ -64,7 +69,8 @@ bin/3230SHELL:  build/main.o\
 				build/isr_hash_table.o\
 				build/builtin_exit.o\
 				build/builtin_timex.o\
-				build/cmd_parser.o
+				build/cmd_parser.o\
+				build/proc_mag.o
 	$(CC) $^ -o bin/3230SHELL $(FLAG)
 
 build/parser_test.o: test/parser_test.c

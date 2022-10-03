@@ -110,3 +110,11 @@ int isr_hash_table_remove(struct ISRHashTable *table, void *key) {
 int isr_hash_table_contains(struct ISRHashTable *table, void *key) {
     return isr_hash_table_find(table, key) != NULL;
 }
+
+void isr_hash_table_free(struct ISRHashTable *table) {
+    for (size_t i = 0; i < table->capacity; ++i) {
+        isr_linked_list_free(table->lists[i], 1);
+    }
+    free(table->lists);
+    free(table);
+}

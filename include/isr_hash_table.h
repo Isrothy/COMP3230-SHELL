@@ -32,4 +32,6 @@ void *isr_hash_table_find(struct ISRHashTable *table, void *key);
 
 int isr_hash_table_contains(struct ISRHashTable *table, void *key);
 
+void isr_hash_table_free(struct ISRHashTable *table);
+
 #endif

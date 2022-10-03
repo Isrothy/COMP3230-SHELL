@@ -1,5 +1,7 @@
 #include "../include/shell_exe.h"
+#include "../include/proc_mag.h"
 #include "../include/shell_io.h"
+#include <bits/types/sigset_t.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -73,12 +75,13 @@ const char *translate_exec_error_message() {
 }
 
 int exe_an_excmd(
-    char **arg_list, int in_file, int out_file, int background, struct ProcInfo *info
+    char **arg_list, int in_file, int out_file, int background, struct ExeRet *exe_ret
 ) {
-    sigset_t set;
+    sigset_t set, oset;
     sigemptyset(&set);
     sigaddset(&set, SIGUSR1);
-    sigprocmask(SIG_BLOCK, &set, NULL);
+    sigaddset(&set, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &set, &oset);
 
     pid_t child_pid = fork();
 
@@ -90,6 +93,12 @@ int exe_an_excmd(
     if (child_pid == 0) {
         if (!background) {
             signal(SIGINT, SIG_DFL);
+        }
+        signal(SIGCHLD, SIG_DFL);
+        if (!sigismember(&oset, SIGCHLD)) {
+            sigset_t s;
+            sigaddset(&s, SIGCHLD);
+            sigprocmask(SIG_UNBLOCK, &s, NULL);
         }
 
         if (in_file != 0) {
@@ -119,6 +128,11 @@ int exe_an_excmd(
         exit(0);
     } else {
         signal(SIGINT, SIG_IGN);
+        if (!sigismember(&oset, SIGUSR1)) {
+            sigset_t s;
+            sigaddset(&s, SIGUSR1);
+            sigprocmask(SIG_UNBLOCK, &s, NULL);
+        }
 
         if (in_file != 0) {
             close(in_file);
@@ -126,6 +140,8 @@ int exe_an_excmd(
         if (out_file != 1) {
             close(out_file);
         }
+
+        proc_add(child_pid, arg_list[0], background);
 
         struct tms st_cpu;
         times(&st_cpu);
@@ -136,35 +152,52 @@ int exe_an_excmd(
             return 0;
         }
 
-        int stat;
-        pid_t ret = waitpid(child_pid, &stat, 0);
+        while (1) {
+            int stat;
+            pid_t pid = waitpid(0, &stat, 0);
+            struct ProcInfo *info = proc_query(pid);
+            if (info == NULL) {
+                shell_error(
+                    "What the f**k? I can find this pid in running processes. PID: %d\n", pid
+                );
+                shell_error("child pid: %d\n", child_pid);
+            }
+            if (pid == child_pid) {
+                struct tms ed_cpu;
+                times(&ed_cpu);
 
-        struct tms ed_cpu;
-        times(&ed_cpu);
+                fflush(stderr);
+                fflush(stdout);
 
-        fflush(stderr);
-        fflush(stdout);
+                proc_del(pid);
 
-        *info = (struct ProcInfo){
-            child_pid,
-            arg_list[0],
-            ed_cpu.tms_cutime - st_cpu.tms_cutime,
-            ed_cpu.tms_cstime - st_cpu.tms_cstime,
-        };
+                *exe_ret = (struct ExeRet){
+                    child_pid,
+                    arg_list[0],
+                    ed_cpu.tms_cutime - st_cpu.tms_cutime,
+                    ed_cpu.tms_cstime - st_cpu.tms_cstime,
+                };
 
 
-        if (ret == -1) {
-            shell_error("Error: waiting for the child process. errno: %d\n", errno);
-            return 0;
-        }
-        if (!WIFEXITED(stat)) {
-            if (WIFSIGNALED(stat)) {
-                shell_output("'%s': killed by signal %d\n", arg_list[0], WTERMSIG(stat));
-            } else if (WIFSTOPPED(stat)) {
-                shell_output("'%s': stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
+                if (pid == -1) {
+                    shell_error("Error: waiting for the child process. errno: %d\n", errno);
+                    sigprocmask(SIG_SETMASK, &oset, NULL);
+                    return 0;
+                }
+                if (!WIFEXITED(stat)) {
+                    if (WIFSIGNALED(stat)) {
+                        shell_output("'%s': killed by signal %d\n", arg_list[0], WTERMSIG(stat));
+                    } else if (WIFSTOPPED(stat)) {
+                        shell_output("'%s': stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
+                    }
+                }
+                sigprocmask(SIG_SETMASK, &oset, NULL);
+                return 0;
+            } else {
+                bgchild_notify(stat, info);
+                proc_del(pid);
             }
         }
-        return 0;
     }
 }
 
@@ -185,7 +218,7 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
         } else {
             out = 1;
         }
-        struct ProcInfo *info = malloc(sizeof(struct ProcInfo));
+        struct ExeRet *info = malloc(sizeof(struct ExeRet));
         int re = exe_an_excmd((char **) p->value, in, out, cmds.background, info);
         if (re < 0) {
             isr_linked_list_free(results, 1);
@@ -199,22 +232,15 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
     return results;
 }
 
-char *find_cmd_name(pid_t pid) {
-    return "haha";
-}
-
-int release_child() {
-    int stat;
-    pid_t pid = wait(&stat);
-    if (pid == -1) {
-        return -1;
+void bgchild_notify(int stat, struct ProcInfo *info) {
+    if (info == NULL) {
+        shell_error("What the f**k? info is NULL\n");
     }
     if (WIFEXITED(stat)) {
-        shell_output("\n[%d] %s Done\n", pid, find_cmd_name(pid));
+        shell_output("[%d] %s Done\n", info->pid, info->cmd);
     } else if (WIFSIGNALED(stat)) {
-        shell_output("\n[%d] %s Terminated\n", pid, find_cmd_name(pid));
+        shell_output("[%d] %s Terminated\n", info->pid, info->cmd);
     } else if (WIFSTOPPED(stat)) {
-        shell_output("\n[%d] %s Stopped\n", pid, find_cmd_name(pid));
+        shell_output("[%d] %s Stopped\n", info->pid, info->cmd);
     }
-    return 0;
 }
