@@ -10,6 +10,7 @@ CSSHELL=bin/3230SHELL\
 		build/cmd_parser.o\
 		build/shell_exe.o\
 		build/proc_mag.o\
+		build/sig_handler.o\
 		build/main.o
 
 TESTS=biuld/parser_test.o\
@@ -57,6 +58,10 @@ build/proc_mag.o: src/proc_mag.c
 	$(CC) $< -c $(FLAG)
 	mv proc_mag.o build
 
+build/sig_handler.o: src/sig_handler.c
+	$(CC) $< -c $(FLAG)
+	mv sig_handler.o build
+
 build/main.o: src/main.c
 	$(CC) $< -c $(FLAG)
 	mv main.o build
@@ -70,6 +75,7 @@ bin/3230SHELL:  build/main.o\
 				build/builtin_exit.o\
 				build/builtin_timex.o\
 				build/cmd_parser.o\
+				build/sig_handler.o\
 				build/proc_mag.o
 	$(CC) $^ -o bin/3230SHELL $(FLAG)
 

@@ -97,7 +97,8 @@ struct ISRHashTableEntity *isr_hash_table_remove(struct ISRHashTable *table, voi
         if (table->id_func(e->key, key)) {
             isr_linked_list_del(l, p);
             --table->size;
-            if (table->capacity > 15 && table->size < table->capacity * ISR_HASH_TABLE_BETA) {
+            if (table->capacity > 15
+                && (double) table->size < (double) table->capacity * ISR_HASH_TABLE_BETA) {
                 isr_hash_table_resize(table, find_next_prime(table->capacity / 2));
             }
             return e;
