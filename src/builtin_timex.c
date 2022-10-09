@@ -23,7 +23,7 @@ void builtin_timex(struct CMDs cmds) {
         return;
     }
     ISRLinkedListForEach(p, result) {
-        struct ExeRet *info = p->value;
+        struct ExeRet *info = (struct ExeRet *) p->value;
         assert(info != NULL);
         shell_output(
             "(PID)%jd  (CMD)%s    (usr)%.3f s  (sys)%.3f s\n",

@@ -5,9 +5,9 @@ char const *getPrompt();
 
 char *readline();
 
-void shell_output(char *format, ...);
+void shell_output(const char *format, ...);
 
 
-void shell_error(char *format, ...);
+void shell_error(const char *format, ...);
 
 #endif

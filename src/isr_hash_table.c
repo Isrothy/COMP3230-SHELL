@@ -9,7 +9,7 @@ isr_hash_table_new(size_t (*hash_func)(void *), int (*id_func)(void *, void *)) 
         0,
         hash_func,
         id_func,
-        malloc(ISR_HASH_TABLE_INIT_CAP * sizeof(struct ISRLinkedList *)),
+        (struct ISRLinkedList **) malloc(ISR_HASH_TABLE_INIT_CAP * sizeof(struct ISRLinkedList *)),
     };
     for (size_t i = 0; i < table->capacity; ++i) {
         table->lists[i] = isr_linked_list_new();
@@ -34,7 +34,8 @@ size_t find_next_prime(size_t x) {
 }
 
 void isr_hash_table_resize(struct ISRHashTable *table, size_t new_capacity) {
-    struct ISRLinkedList **new_lists = malloc(new_capacity * sizeof(struct ISRLinkedList *));
+    struct ISRLinkedList **new_lists
+        = (struct ISRLinkedList **) malloc(new_capacity * sizeof(struct ISRLinkedList *));
     for (size_t i = 0; i < new_capacity; ++i) {
         new_lists[i] = isr_linked_list_new();
     }
@@ -63,7 +64,8 @@ void isr_hash_table_insert(struct ISRHashTable *table, void *key, void *value) {
             return;
         }
     }
-    struct ISRHashTableEntity *entity = malloc(sizeof(struct ISRHashTableEntity));
+    struct ISRHashTableEntity *entity
+        = (struct ISRHashTableEntity *) malloc(sizeof(struct ISRHashTableEntity));
     *entity = (struct ISRHashTableEntity){key, value, hash_value};
     isr_linked_list_insert_tail(table->lists[index], entity);
     ++table->size;

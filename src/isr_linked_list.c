@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 struct ISRLinkedList *isr_linked_list_new() {
-    struct ISRLinkedList *new_list = malloc(sizeof(struct ISRLinkedList));
-    new_list->sentinal = malloc(sizeof(struct ISRLinkedListNode));
+    struct ISRLinkedList *new_list = (struct ISRLinkedList *) malloc(sizeof(struct ISRLinkedList));
+    new_list->sentinal = (struct ISRLinkedListNode *) malloc(sizeof(struct ISRLinkedListNode));
     *(new_list->sentinal) = (struct ISRLinkedListNode){
         NULL,
         new_list->sentinal,

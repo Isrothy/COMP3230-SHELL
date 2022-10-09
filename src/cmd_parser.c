@@ -1,8 +1,6 @@
 #include "../include/cmd_parser.h"
 #include "../include/isr_dynamic_array.h"
-#include "../include/isr_linked_list.h"
 #include <ctype.h>
-#include <string.h>
 
 const char *translate_parse_error(int pe) {
     if (pe >= 0) {
@@ -25,7 +23,7 @@ const char *translate_parse_error(int pe) {
             return "Should not have two consecutive | without in-between command";
         }
         default: {
-            return "Unkown error";
+            return "Unknown error";
         }
     }
 }

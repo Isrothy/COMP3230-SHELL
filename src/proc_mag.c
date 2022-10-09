@@ -21,22 +21,22 @@ void proc_mag_init() {
 }
 
 void proc_add(pid_t pid, char *cmd, int bg) {
-    pid_t *key = malloc(sizeof(pid_t));
+    pid_t *key = (pid_t *) malloc(sizeof(pid_t));
     *key = pid;
-    char *new_cmd = malloc(strlen(cmd) * sizeof(char));
+    char *new_cmd = (char *) malloc(strlen(cmd) * sizeof(char));
     strcpy(new_cmd, cmd);
-    struct ProcInfo *info = malloc(sizeof(struct ProcInfo));
+    struct ProcInfo *info = (struct ProcInfo *) malloc(sizeof(struct ProcInfo));
     *info = (struct ProcInfo){pid, new_cmd, bg};
     isr_hash_table_insert(ptb, key, info);
 }
 
 struct ProcInfo *proc_query(pid_t pid) {
-    return isr_hash_table_find(ptb, &pid);
+    return (struct ProcInfo *) isr_hash_table_find(ptb, &pid);
 }
 
 void proc_del(pid_t pid) {
     struct ISRHashTableEntity *e = isr_hash_table_remove(ptb, &pid);
-    struct ProcInfo *info = e->value;
+    struct ProcInfo *info = (struct ProcInfo *) e->value;
     free(info->cmd);
     free(e);
 }

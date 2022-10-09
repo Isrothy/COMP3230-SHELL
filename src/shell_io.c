@@ -11,7 +11,7 @@ char const *getPrompt() {
 char *readline() {
     size_t capacity = 64;
     size_t size = 0;
-    char *line = malloc(capacity * sizeof(char));
+    char *line = (char *) malloc(capacity * sizeof(char));
     if (line == NULL) {
         return NULL;
     }
@@ -23,7 +23,7 @@ char *readline() {
         line[size] = c;
         ++size;
         if (size + 1 == capacity) {
-            line = realloc(line, capacity * 2 * sizeof(char));
+            line = (char *) realloc(line, capacity * 2 * sizeof(char));
             if (line == NULL) {
                 return NULL;
             }
@@ -34,7 +34,7 @@ char *readline() {
     return line;
 }
 
-void shell_output(char *format, ...) {
+void shell_output(const char *format, ...) {
     va_list args;
     va_start(args, format);
     vfprintf(stdout, format, args);
@@ -42,7 +42,7 @@ void shell_output(char *format, ...) {
     fflush(stdout);
 }
 
-void shell_error(char *format, ...) {
+void shell_error(const char *format, ...) {
     va_list args;
     va_start(args, format);
     vfprintf(stderr, format, args);

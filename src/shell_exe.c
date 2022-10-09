@@ -114,8 +114,8 @@ int exe_an_excmd(
             shell_error("Caught signal %d\n", sig);
             exit(0);
         }
-        int exe_ret = execvp(arg_list[0], arg_list);
-        if (exe_ret < 0) {
+        int res = execvp(arg_list[0], arg_list);
+        if (res < 0) {
             shell_error("'%s': %s\n", arg_list[0], translate_exec_error_message());
         }
 
@@ -228,7 +228,7 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
         } else {
             out = 1;
         }
-        struct ExeRet *exe_ret = malloc(sizeof(struct ExeRet));
+        struct ExeRet *exe_ret = (struct ExeRet *) malloc(sizeof(struct ExeRet));
         int re = exe_an_excmd((char **) p->value, in, out, cmds.background, exe_ret);
         if (re < 0) {
             isr_linked_list_free(results, 1);
