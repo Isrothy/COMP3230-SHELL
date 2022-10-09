@@ -65,10 +65,12 @@ int main() {
                 builtin_timex(cmds);
                 --(*args);
             } else {
-                exe_excmds(cmds);
+                struct ISRLinkedList *result = exe_excmds(cmds);
+                if (result != NULL) {
+                    isr_linked_list_free(result, 0);
+                }
             }
         }
-        isr_linked_list_free(cmds.command_list, 0);
-        free(input);
+        isr_linked_list_free(cmds.command_list, 1);
     }
 }

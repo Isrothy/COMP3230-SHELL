@@ -43,7 +43,7 @@ void isr_linked_list_free(struct ISRLinkedList *list, int deep) {
     while (p != list->sentinal) {
         struct ISRLinkedListNode *q = p->next;
         void *val = isr_linked_list_del(list, p);
-        if (deep) {
+        if (deep && val != NULL) {
             free(val);
         }
         p = q;

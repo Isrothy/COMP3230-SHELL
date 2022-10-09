@@ -99,7 +99,9 @@ int exe_an_excmd(
         if (in_file != 0) {
             dup2(in_file, 0);
             close(in_file);
-        }
+         }// else if (background) {
+        //     close(in_file);
+        // }
         if (out_file != 1) {
             dup2(out_file, 1);
             close(out_file);

@@ -16,6 +16,6 @@ struct ProcInfo *proc_query(pid_t pid);
 
 void proc_del(pid_t pid);
 
-void proc_mag_free();
+void proc_mag_release();
 
 #endif

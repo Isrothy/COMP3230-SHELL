@@ -24,6 +24,7 @@ void *isr_linked_list_del(struct ISRLinkedList *list, struct ISRLinkedListNode *
 void isr_linked_list_free(struct ISRLinkedList *list, int deep);
 
 #define ISRLinkedListForEach(p, l)                                                                 \
-    for (struct ISRLinkedListNode *p = (l)->sentinal->next; p != (l)->sentinal; p = p->next)
+    for (struct ISRLinkedListNode * (p) = (l)->sentinal->next; (p) != (l)->sentinal;               \
+         (p) = (p)->next)
 
 #endif

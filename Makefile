@@ -19,7 +19,7 @@ TESTS=biuld/parser_test.o\
 	  bin/shell_exe_test\
 	  bin/hash_table_test.o
 
-all: $(CSSHELL) $(TESTS)
+all: $(CSSHELL)
 
 build/isr_linked_list.o: src/isr_linked_list.c
 	$(CC) $< -c $(FLAG)

@@ -1,6 +1,7 @@
 #include "../include/proc_mag.h"
 #include "../include/isr_hash_table.h"
 #include "../include/shell_io.h"
+#include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +24,7 @@ void proc_mag_init() {
 void proc_add(pid_t pid, char *cmd, int bg) {
     pid_t *key = (pid_t *) malloc(sizeof(pid_t));
     *key = pid;
-    char *new_cmd = (char *) malloc(strlen(cmd) * sizeof(char));
+    char *new_cmd = (char *) malloc((strlen(cmd) + 1) * sizeof(char));
     strcpy(new_cmd, cmd);
     struct ProcInfo *info = (struct ProcInfo *) malloc(sizeof(struct ProcInfo));
     *info = (struct ProcInfo){pid, new_cmd, bg};
@@ -41,6 +42,11 @@ void proc_del(pid_t pid) {
     free(e);
 }
 
-void proc_mag_free() {
+void proc_mag_release() {
+    ISRHashTableForEach(p, ptb) {
+        struct ISRHashTableEntity *e = p->value;
+        struct ProcInfo *info = (struct ProcInfo *) e->value;
+        kill(info->pid, SIGKILL);
+    }
     isr_hash_table_free(ptb);
 }

@@ -33,5 +33,5 @@ void builtin_timex(struct CMDs cmds) {
             (double) info->sys_time / (double) sysconf(_SC_CLK_TCK)
         );
     }
-    isr_linked_list_free(result, 0);
+    isr_linked_list_free(result, 1);
 }

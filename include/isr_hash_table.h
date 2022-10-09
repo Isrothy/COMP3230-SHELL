@@ -37,4 +37,9 @@ int isr_hash_table_contains(struct ISRHashTable *table, void *key);
 
 void isr_hash_table_free(struct ISRHashTable *table);
 
+#define ISRHashTableForEach(p, table)                                                              \
+    for (size_t ISRHashTableIterator = 0; ISRHashTableIterator < (table)->capacity;                \
+         ++ISRHashTableIterator)                                                                   \
+    ISRLinkedListForEach(p, (table)->lists[ISRHashTableIterator])
+
 #endif
