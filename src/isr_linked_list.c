@@ -9,12 +9,12 @@ struct ISRLinkedList *isr_linked_list_new() {
         new_list->sentinal,
         new_list->sentinal,
     };
-    new_list->size = 0;
     return new_list;
 }
 
 void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value) {
-    struct ISRLinkedListNode *p = malloc(sizeof(struct ISRLinkedListNode));
+    struct ISRLinkedListNode *p
+        = (struct ISRLinkedListNode *) malloc(sizeof(struct ISRLinkedListNode));
     *p = (struct ISRLinkedListNode){
         value,
         list->sentinal,
@@ -22,18 +22,16 @@ void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value) {
     };
     p->next->prev = p;
     p->prev->next = p;
-    list->size += 1;
 }
 
 int isr_linked_list_is_empty(struct ISRLinkedList *list) {
-    return list->size == 0;
+    return list->sentinal->next == list->sentinal;
 }
 
-void *isr_linked_list_del(struct ISRLinkedList *list, struct ISRLinkedListNode *p) {
+void *isr_linked_list_del(struct ISRLinkedListNode *p) {
     void *ret = p->value;
     p->prev->next = p->next;
     p->next->prev = p->prev;
-    --list->size;
     free(p);
     return ret;
 }
@@ -42,7 +40,7 @@ void isr_linked_list_free(struct ISRLinkedList *list, int deep) {
     struct ISRLinkedListNode *p = list->sentinal->next;
     while (p != list->sentinal) {
         struct ISRLinkedListNode *q = p->next;
-        void *val = isr_linked_list_del(list, p);
+        void *val = isr_linked_list_del(p);
         if (deep && val != NULL) {
             free(val);
         }

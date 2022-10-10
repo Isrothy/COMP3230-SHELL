@@ -6,8 +6,16 @@
 #include "../include/shell_io.h"
 #include "../include/sig_handler.h"
 #include <signal.h>
+#include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief entry of the program.
+ * First set signal handler for SIGINT, SIGSTP and SITCHLD
+ * Then handle user input and execute commands.
+ *
+ * @return return 0 if exit normally
+ */
 int main() {
     signal(SIGINT, handle_sig_int);
     signal(SIGTSTP, handle_sig_tstp);
@@ -36,5 +44,6 @@ int main() {
             }
         }
         isr_linked_list_free(cmds.command_list, 1);
+        free(input);
     }
 }

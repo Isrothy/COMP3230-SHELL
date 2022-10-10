@@ -44,7 +44,7 @@ void proc_del(pid_t pid) {
 
 void proc_mag_release() {
     ISRHashTableForEach(p, ptb) {
-        struct ISRHashTableEntity *e = p->value;
+        struct ISRHashTableEntity *e = (struct ISRHashTableEntity *) p->value;
         struct ProcInfo *info = (struct ProcInfo *) e->value;
         kill(info->pid, SIGKILL);
     }

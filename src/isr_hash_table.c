@@ -3,7 +3,7 @@
 
 struct ISRHashTable *
 isr_hash_table_new(size_t (*hash_func)(void *), int (*id_func)(void *, void *)) {
-    struct ISRHashTable *table = malloc(sizeof(struct ISRHashTable));
+    struct ISRHashTable *table = (struct ISRHashTable *) malloc(sizeof(struct ISRHashTable));
     *table = (struct ISRHashTable){
         ISR_HASH_TABLE_INIT_CAP,
         0,
@@ -42,7 +42,7 @@ void isr_hash_table_resize(struct ISRHashTable *table, size_t new_capacity) {
     for (size_t i = 0; i < table->capacity; ++i) {
         struct ISRLinkedList *l = table->lists[i];
         ISRLinkedListForEach(p, l) {
-            struct ISRHashTableEntity *e = p->value;
+            struct ISRHashTableEntity *e = (struct ISRHashTableEntity *) p->value;
             isr_linked_list_insert_tail(new_lists[e->hash_value % new_capacity], e);
         }
         isr_linked_list_free(l, 0);
@@ -69,7 +69,7 @@ void isr_hash_table_insert(struct ISRHashTable *table, void *key, void *value) {
     *entity = (struct ISRHashTableEntity){key, value, hash_value};
     isr_linked_list_insert_tail(table->lists[index], entity);
     ++table->size;
-    if (table->size > table->capacity * ISR_HASH_TABLE_ALPHA) {
+    if ((double) table->size > (double) table->capacity * ISR_HASH_TABLE_ALPHA) {
         isr_hash_table_resize(table, find_next_prime(table->capacity * 2));
     }
 }
@@ -79,7 +79,7 @@ void *isr_hash_table_find(struct ISRHashTable *table, void *key) {
     size_t index = hash_value % table->capacity;
     struct ISRLinkedList *l = table->lists[index];
     ISRLinkedListForEach(p, l) {
-        struct ISRHashTableEntity *e = p->value;
+        struct ISRHashTableEntity *e = (struct ISRHashTableEntity *) p->value;
         if (table->id_func(e->key, key)) {
             return e->value;
         }
@@ -87,15 +87,14 @@ void *isr_hash_table_find(struct ISRHashTable *table, void *key) {
     return NULL;
 }
 
-
 struct ISRHashTableEntity *isr_hash_table_remove(struct ISRHashTable *table, void *key) {
     size_t hash_value = table->hash_func(key);
     size_t index = hash_value % table->capacity;
     struct ISRLinkedList *l = table->lists[index];
     ISRLinkedListForEach(p, l) {
-        struct ISRHashTableEntity *e = p->value;
+        struct ISRHashTableEntity *e = (struct ISRHashTableEntity *) p->value;
         if (table->id_func(e->key, key)) {
-            isr_linked_list_del(l, p);
+            isr_linked_list_del(p);
             --table->size;
             if (table->capacity > 15
                 && (double) table->size < (double) table->capacity * ISR_HASH_TABLE_BETA) {
