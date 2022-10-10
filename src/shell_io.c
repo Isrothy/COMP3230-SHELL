@@ -1,4 +1,6 @@
 #include "../include/shell_io.h"
+#include "../include/proc_mag.h"
+#include <signal.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -17,6 +19,12 @@ char *readline() {
     }
     while (1) {
         char c = (char) getchar();
+        if (c == EOF) {
+            signal(SIGCHLD, SIG_DFL);
+            proc_mag_release();
+            shell_output("\n");
+            exit(0);
+        }
         if (c == '\n') {
             break;
         }
