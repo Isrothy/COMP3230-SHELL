@@ -3,6 +3,7 @@
 #include "../include/shell_io.h"
 #include <bits/types/sigset_t.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/times.h>
@@ -99,9 +100,11 @@ int exe_an_excmd(
         if (in_file != 0) {
             dup2(in_file, 0);
             close(in_file);
-        }// else if (background) {
-        //     close(in_file);
-        // }
+        } else if (background) {
+            int fd = open("/dev/null", O_RDONLY);
+            dup2(fd, 0);
+            close(fd);
+        }
         if (out_file != 1) {
             dup2(out_file, 1);
             close(out_file);
