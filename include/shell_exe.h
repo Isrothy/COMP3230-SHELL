@@ -4,20 +4,19 @@
 #include "cmd_parser.h"
 #include "isr_linked_list.h"
 #include "proc_mag.h"
+#include <bits/types/struct_rusage.h>
 #include <sys/types.h>
 
 /**
  * @brief retur result of executing a command
  * pid: the process id
  * cmd: the command
- * user_time: user time that the process uses
- * sys_time: system time that the process uses
+ * usage: resorce usage
  */
 struct ExeRet {
     pid_t pid;
     char *cmd;
-    clock_t user_time;
-    clock_t sys_time;
+    struct rusage usage;
 };
 
 /**

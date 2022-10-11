@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/resource.h>
 #include <sys/times.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -142,9 +143,6 @@ int exe_an_excmd(
 
         proc_add(child_pid, arg_list[0], background);
 
-        struct tms st_cpu;
-        times(&st_cpu);
-
         kill(child_pid, SIGUSR1);
 
         if (background) {
@@ -154,7 +152,8 @@ int exe_an_excmd(
 
         while (1) {
             int stat;
-            pid_t pid = waitpid(0, &stat, 0);
+            struct rusage rusage;
+            pid_t pid = wait4(child_pid, &stat, 0, &rusage);
             struct ProcInfo *info = proc_query(pid);
             if (info == NULL) {
                 shell_error(
@@ -162,16 +161,12 @@ int exe_an_excmd(
                 );
             }
             if (pid == child_pid) {
-                struct tms ed_cpu;
-                times(&ed_cpu);
-
                 proc_del(pid);
 
                 *exe_ret = (struct ExeRet){
                     child_pid,
                     arg_list[0],
-                    ed_cpu.tms_cutime - st_cpu.tms_cutime,
-                    ed_cpu.tms_cstime - st_cpu.tms_cstime,
+                    rusage,
                 };
 
 
