@@ -102,9 +102,11 @@ int exe_an_excmd(
             dup2(in_file, 0);
             close(in_file);
         } else if (background) {
-            int fd = open("/dev/null", O_RDONLY);
-            dup2(fd, 0);
-            close(fd);
+            close(0);
+            if (open("/dev/null", O_RDONLY) != 0) {
+                shell_error("Can't open %s", "/dev/null");
+                exit(0);
+            }
         }
         if (out_file != 1) {
             dup2(out_file, 1);
