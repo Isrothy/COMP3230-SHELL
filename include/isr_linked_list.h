@@ -47,6 +47,15 @@ void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value);
 int isr_linked_list_is_empty(struct ISRLinkedList *list);
 
 /**
+ * @brief
+ *
+ * @param list
+ * @param p
+ * @return int none-zero if is tail
+ */
+int isr_linked_list_is_tail(struct ISRLinkedList *list, struct ISRLinkedListNode *p);
+
+/**
  * @brief remove node p from the list
  *
  * @param list

@@ -21,7 +21,7 @@ void handle_sig_chld(int signum) {
     sigprocmask(SIG_BLOCK, &set, &oset);
 
     int stat;
-    pid_t pid = waitpid(0, &stat, WNOHANG);
+    pid_t pid = waitpid(-1, &stat, WNOHANG);
     if (pid <= 0) {
         return;
     }

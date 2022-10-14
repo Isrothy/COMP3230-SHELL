@@ -26,11 +26,12 @@ struct ExeRet {
  * @param in_file input file number. 0 is stdin
  * @param out_file output file number. 1 is stdout
  * @param background non-zero if run in the background. zero if foreground
+ * @param pgid process group ID. This is used only when background is none-zero. if pgid is 0 then set then pgid should be set pid
  * @param exe_ret the result of executing. exe_ret should not be NULL
  * @return int 0 if executed normally.
  */
 int exe_an_excmd(
-    char **arg_list, int in_file, int out_file, int background, struct ExeRet *exe_ret
+    char **arg_list, int in_file, int out_file, int background, pid_t *pgid, struct ExeRet *exe_ret
 );
 
 /**

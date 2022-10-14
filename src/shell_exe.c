@@ -76,28 +76,42 @@ const char *translate_exec_error_message() {
     }
 }
 
+void sig_pause(int signum) {
+    pause();
+}
+
 void exe_child(
-    char **arg_list, const int in_file, const int out_file, const int background, const sigset_t set
+    char **arg_list,
+    const int in_file,
+    const int out_file,
+    const int background,
+    pid_t *pgid,
+    const sigset_t set
 ) {
-    if (!background) {
-        signal(SIGINT, SIG_DFL);
+    if (background) {
+        signal(SIGTTIN, sig_pause);
+    } else {
         signal(SIGTSTP, SIG_DFL);
     }
     signal(SIGCHLD, SIG_DFL);
+    signal(SIGINT, SIG_DFL);
 
     if (in_file != 0) {
         dup2(in_file, 0);
         close(in_file);
-    } else if (background) {
-        close(0);
-        if (open("/dev/null", O_RDONLY) != 0) {
-            shell_error("Can't open %s", "/dev/null");
-            exit(0);
-        }
     }
     if (out_file != 1) {
         dup2(out_file, 1);
         close(out_file);
+    }
+
+    if (background) {
+        if (*pgid == 0) {
+            setpgid(0, 0);
+            *pgid = getpgid(0);
+        } else {
+            setpgid(0, *pgid);
+        }
     }
 
     int sig;
@@ -152,10 +166,12 @@ int exe_parent(
     while (1) {
         int stat;
         struct rusage rusage;
-        pid_t pid = wait4(0, &stat, 0, &rusage);
+        pid_t pid = wait4(-1, &stat, 0, &rusage);
         struct ProcInfo *info = proc_query(pid);
         if (info == NULL) {
-            shell_error("What the f**k? I can find this pid in running processes. PID: %d\n", pid);
+            shell_error(
+                "What the f**k? I cannot find this pid in running processes. PID: %d\n", pid
+            );
         }
         if (pid == child_pid) {
             proc_del(pid);
@@ -213,6 +229,7 @@ int exe_an_excmd(
     const int in_file,
     const int out_file,
     const int background,
+    pid_t *pgid,
     struct ExeRet *exe_ret
 ) {
     sigset_t set, oset;
@@ -229,7 +246,7 @@ int exe_an_excmd(
     }
 
     if (child_pid == 0) {
-        exe_child(arg_list, in_file, out_file, background, set);
+        exe_child(arg_list, in_file, out_file, background, pgid, set);
     } else {
         return exe_parent(arg_list, in_file, out_file, background, exe_ret, oset, child_pid);
     }
@@ -242,8 +259,9 @@ struct ISRLinkedList *exe_excmds(const struct CMDs cmds) {
     struct ISRLinkedList *results = isr_linked_list_new();
     int in = 0, out = 1;
     int pipes[2];
+    pid_t pgid = 0;
     ISRLinkedListForEach(p, cmds.command_list) {
-        if (p->next != cmds.command_list->sentinal) {
+        if (!isr_linked_list_is_tail(cmds.command_list, p)) {
             int r = pipe(pipes);
             if (r < 0) {
                 shell_error("Pipe err\n");
@@ -255,13 +273,13 @@ struct ISRLinkedList *exe_excmds(const struct CMDs cmds) {
             out = 1;
         }
         struct ExeRet *exe_ret = (struct ExeRet *) malloc(sizeof(struct ExeRet));
-        int re = exe_an_excmd((char **) p->value, in, out, cmds.background, exe_ret);
+        int re = exe_an_excmd((char **) p->value, in, out, cmds.background, &pgid, exe_ret);
         if (re < 0) {
             isr_linked_list_free(results, 1);
             return NULL;
         }
         isr_linked_list_insert_tail(results, exe_ret);
-        if (p->next != cmds.command_list->sentinal) {
+        if (!isr_linked_list_is_tail(cmds.command_list, p)) {
             in = pipes[0];
         }
     }

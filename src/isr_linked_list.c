@@ -28,6 +28,10 @@ int isr_linked_list_is_empty(struct ISRLinkedList *list) {
     return list->sentinal->next == list->sentinal;
 }
 
+int isr_linked_list_is_tail(struct ISRLinkedList *list, struct ISRLinkedListNode *p) {
+    return p->next == list->sentinal;
+}
+
 void *isr_linked_list_del(struct ISRLinkedListNode *p) {
     void *ret = p->value;
     p->prev->next = p->next;
