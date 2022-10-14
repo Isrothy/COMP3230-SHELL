@@ -48,7 +48,7 @@ const char *translate_exec_error_message() {
             return "The system limit on the total number of open files has been reached";
         }
         case ENOENT: {
-            return "Command not found";
+            return "No such file or directory";
         }
         case ENOEXEC: {
             return "An executable is not in a recognized format, "
@@ -241,7 +241,7 @@ int exe_an_excmd(
     pid_t child_pid = fork();
 
     if (child_pid < 0) {
-        shell_error("ERROR: FORK FAILED");
+        shell_error("Error: fork failed");
         return -1;
     }
 
@@ -264,7 +264,7 @@ struct ISRLinkedList *exe_excmds(const struct CMDs cmds) {
         if (!isr_linked_list_is_tail(cmds.command_list, p)) {
             int r = pipe(pipes);
             if (r < 0) {
-                shell_error("Pipe err\n");
+                shell_error("Pipe error\n");
                 isr_linked_list_free(results, 1);
                 return NULL;
             }

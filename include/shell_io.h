@@ -6,7 +6,14 @@
  *
  * @return char const*
  */
-char const *getPrompt();
+const char *getPrompt();
+
+/**
+ * @brief Get the Error Prefix. By default "3230shell: "
+ *
+ * @return const char*
+ */
+const char *getErrorPrefix();
 
 /**
  * @brief read chars until '\n'

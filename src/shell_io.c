@@ -6,8 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char const *getPrompt() {
+const char *getPrompt() {
     return "3230shell ## ";
+}
+
+const char *getErrorPrefix() {
+    return "3230shell: ";
 }
 
 char *readline() {
@@ -53,6 +57,7 @@ void shell_output(const char *format, ...) {
 void shell_error(const char *format, ...) {
     va_list args;
     va_start(args, format);
+    fprintf(stderr, "%s", getErrorPrefix());
     vfprintf(stderr, format, args);
     va_end(args);
     fflush(stderr);
