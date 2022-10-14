@@ -2,7 +2,7 @@
 #include "../include/isr_dynamic_array.h"
 #include <ctype.h>
 
-const char *translate_parse_error(int pe) {
+const char *translate_parse_error(const int pe) {
     if (pe >= 0) {
         return "";
     }

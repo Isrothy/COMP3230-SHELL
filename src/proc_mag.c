@@ -21,7 +21,7 @@ void proc_mag_init() {
     ptb = isr_hash_table_new(proc_hash, proc_id);
 }
 
-void proc_add(pid_t pid, char *cmd, int bg) {
+void proc_add(const pid_t pid, char *cmd, const int bg) {
     pid_t *key = (pid_t *) malloc(sizeof(pid_t));
     *key = pid;
     char *new_cmd = (char *) malloc((strlen(cmd) + 1) * sizeof(char));

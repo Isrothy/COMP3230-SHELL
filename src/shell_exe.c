@@ -76,8 +76,144 @@ const char *translate_exec_error_message() {
     }
 }
 
+void exe_child(
+    char **arg_list, const int in_file, const int out_file, const int background, const sigset_t set
+) {
+    if (!background) {
+        signal(SIGINT, SIG_DFL);
+        signal(SIGTSTP, SIG_DFL);
+    }
+    signal(SIGCHLD, SIG_DFL);
+
+    if (in_file != 0) {
+        dup2(in_file, 0);
+        close(in_file);
+    } else if (background) {
+        close(0);
+        if (open("/dev/null", O_RDONLY) != 0) {
+            shell_error("Can't open %s", "/dev/null");
+            exit(0);
+        }
+    }
+    if (out_file != 1) {
+        dup2(out_file, 1);
+        close(out_file);
+    }
+
+    int sig;
+    int sig_ret = sigwait(&set, &sig);
+    if (sig_ret == -1) {
+        shell_error("Invalid or unsupported signal\n");
+        exit(0);
+    } else if (sig != SIGUSR1) {
+        shell_error("Caught signal %d\n", sig);
+        exit(0);
+    }
+    int res = execvp(arg_list[0], arg_list);
+    if (res < 0) {
+        shell_error("'%s': %s\n", arg_list[0], translate_exec_error_message());
+    }
+    exit(0);
+}
+
+int exe_parent(
+    char **arg_list,
+    const int in_file,
+    const int out_file,
+    const int background,
+    struct ExeRet *exe_ret,
+    const sigset_t oset,
+    const pid_t child_pid
+) {
+    signal(SIGINT, SIG_IGN);
+    if (!sigismember(&oset, SIGUSR1)) {
+        sigset_t s;
+        sigaddset(&s, SIGUSR1);
+        sigprocmask(SIG_UNBLOCK, &s, NULL);
+    }
+
+    if (in_file != 0) {
+        close(in_file);
+    }
+    if (out_file != 1) {
+        close(out_file);
+    }
+
+    proc_add(child_pid, arg_list[0], background);
+
+    kill(child_pid, SIGUSR1);
+
+    if (background) {
+        sigprocmask(SIG_SETMASK, &oset, NULL);
+        signal(SIGINT, handle_sig_int);
+        return 0;
+    }
+
+    while (1) {
+        int stat;
+        struct rusage rusage;
+        pid_t pid = wait4(0, &stat, 0, &rusage);
+        struct ProcInfo *info = proc_query(pid);
+        if (info == NULL) {
+            shell_error("What the f**k? I can find this pid in running processes. PID: %d\n", pid);
+        }
+        if (pid == child_pid) {
+            proc_del(pid);
+
+            *exe_ret = (struct ExeRet){
+                child_pid,
+                arg_list[0],
+                rusage,
+            };
+
+
+            if (pid == -1) {
+                shell_error("Error: waiting for the child process. errno: %d\n", errno);
+                break;
+            }
+            if (!WIFEXITED(stat)) {
+                if (WIFSIGNALED(stat)) {
+                    switch (WTERMSIG(stat)) {
+                        case SIGINT: {
+                            shell_output(
+                                "'%s': Interrupt by signal %d\n", arg_list[0], WTERMSIG(stat)
+                            );
+                            break;
+                        }
+                        case SIGKILL: {
+                            shell_output(
+                                "'%s': Killed by signal %d\n", arg_list[0], WTERMSIG(stat)
+                            );
+                            break;
+                        }
+                        default: {
+                            shell_output(
+                                "'%s': Terminated by signal %d\n", arg_list[0], WTERMSIG(stat)
+                            );
+                            break;
+                        }
+                    }
+                } else if (WIFSTOPPED(stat)) {
+                    shell_output("'%s': Stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
+                }
+            }
+            break;
+        } else {
+            bgchild_notify(stat, info);
+            proc_del(pid);
+        }
+    }
+    sigprocmask(SIG_SETMASK, &oset, NULL);
+    signal(SIGINT, handle_sig_int);
+    return 0;
+}
+
 int exe_an_excmd(
-    char **arg_list, int in_file, int out_file, int background, struct ExeRet *exe_ret
+    char **arg_list,
+    const int in_file,
+    const int out_file,
+    const int background,
+    struct ExeRet *exe_ret
 ) {
     sigset_t set, oset;
     sigemptyset(&set);
@@ -93,132 +229,16 @@ int exe_an_excmd(
     }
 
     if (child_pid == 0) {
-        if (!background) {
-            signal(SIGINT, SIG_DFL);
-            signal(SIGTSTP, SIG_DFL);
-        }
-        signal(SIGCHLD, SIG_DFL);
-
-        if (in_file != 0) {
-            dup2(in_file, 0);
-            close(in_file);
-        } else if (background) {
-            close(0);
-            if (open("/dev/null", O_RDONLY) != 0) {
-                shell_error("Can't open %s", "/dev/null");
-                exit(0);
-            }
-        }
-        if (out_file != 1) {
-            dup2(out_file, 1);
-            close(out_file);
-        }
-
-        int sig;
-        int sig_ret = sigwait(&set, &sig);
-        if (sig_ret == -1) {
-            shell_error("Invalid or unsupported signal\n");
-            exit(0);
-        } else if (sig != SIGUSR1) {
-            shell_error("Caught signal %d\n", sig);
-            exit(0);
-        }
-        int res = execvp(arg_list[0], arg_list);
-        if (res < 0) {
-            shell_error("'%s': %s\n", arg_list[0], translate_exec_error_message());
-        }
-
-        exit(0);
+        exe_child(arg_list, in_file, out_file, background, set);
     } else {
-        signal(SIGINT, SIG_IGN);
-        if (!sigismember(&oset, SIGUSR1)) {
-            sigset_t s;
-            sigaddset(&s, SIGUSR1);
-            sigprocmask(SIG_UNBLOCK, &s, NULL);
-        }
-
-        if (in_file != 0) {
-            close(in_file);
-        }
-        if (out_file != 1) {
-            close(out_file);
-        }
-
-        proc_add(child_pid, arg_list[0], background);
-
-        kill(child_pid, SIGUSR1);
-
-        if (background) {
-            sigprocmask(SIG_SETMASK, &oset, NULL);
-            signal(SIGINT, handle_sig_int);
-            return 0;
-        }
-
-        while (1) {
-            int stat;
-            struct rusage rusage;
-            pid_t pid = wait4(child_pid, &stat, 0, &rusage);
-            struct ProcInfo *info = proc_query(pid);
-            if (info == NULL) {
-                shell_error(
-                    "What the f**k? I can find this pid in running processes. PID: %d\n", pid
-                );
-            }
-            if (pid == child_pid) {
-                proc_del(pid);
-
-                *exe_ret = (struct ExeRet){
-                    child_pid,
-                    arg_list[0],
-                    rusage,
-                };
-
-
-                if (pid == -1) {
-                    shell_error("Error: waiting for the child process. errno: %d\n", errno);
-                    sigprocmask(SIG_SETMASK, &oset, NULL);
-                    break;
-                }
-                if (!WIFEXITED(stat)) {
-                    if (WIFSIGNALED(stat)) {
-                        switch (WTERMSIG(stat)) {
-                            case SIGINT: {
-                                shell_output(
-                                    "'%s': Interrupt by signal %d\n", arg_list[0], WTERMSIG(stat)
-                                );
-                                break;
-                            }
-                            case SIGKILL: {
-                                shell_output(
-                                    "'%s': Killed by signal %d\n", arg_list[0], WTERMSIG(stat)
-                                );
-                                break;
-                            }
-                            default: {
-                                shell_output(
-                                    "'%s': Terminated by signal %d\n", arg_list[0], WTERMSIG(stat)
-                                );
-                                break;
-                            }
-                        }
-                    } else if (WIFSTOPPED(stat)) {
-                        shell_output("'%s': Stopped by signal %d\n", arg_list[0], WSTOPSIG(stat));
-                    }
-                }
-                sigprocmask(SIG_SETMASK, &oset, NULL);
-                break;
-            } else {
-                bgchild_notify(stat, info);
-                proc_del(pid);
-            }
-        }
+        return exe_parent(arg_list, in_file, out_file, background, exe_ret, oset, child_pid);
     }
-    signal(SIGINT, handle_sig_int);
-    return 0;
+    shell_error("What the f**k? You are not supposed to reach here");
+    return -1;
 }
 
 
-struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
+struct ISRLinkedList *exe_excmds(const struct CMDs cmds) {
     struct ISRLinkedList *results = isr_linked_list_new();
     int in = 0, out = 1;
     int pipes[2];
@@ -248,7 +268,7 @@ struct ISRLinkedList *exe_excmds(struct CMDs cmds) {
     return results;
 }
 
-void bgchild_notify(int stat, struct ProcInfo *info) {
+void bgchild_notify(const int stat, struct ProcInfo *info) {
     if (info == NULL) {
         shell_error("What the f**k? info is NULL\n");
     }

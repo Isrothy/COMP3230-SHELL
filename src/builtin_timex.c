@@ -8,7 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 
-void builtin_timex(struct CMDs cmds) {
+void builtin_timex(const struct CMDs cmds) {
     struct ISRLinkedListNode *first = cmds.command_list->sentinal->next;
     if (first == NULL || first->value == NULL || ((char **) (first->value))[0] == NULL) {
         shell_error("3230shell: \" timeX \" cannot be a standalone command\n");

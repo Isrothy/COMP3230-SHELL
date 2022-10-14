@@ -33,7 +33,7 @@ size_t find_next_prime(size_t x) {
     return x;
 }
 
-void isr_hash_table_resize(struct ISRHashTable *table, size_t new_capacity) {
+void isr_hash_table_resize(struct ISRHashTable *table, const size_t new_capacity) {
     struct ISRLinkedList **new_lists
         = (struct ISRLinkedList **) malloc(new_capacity * sizeof(struct ISRLinkedList *));
     for (size_t i = 0; i < new_capacity; ++i) {

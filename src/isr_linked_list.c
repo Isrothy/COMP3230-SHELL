@@ -36,7 +36,7 @@ void *isr_linked_list_del(struct ISRLinkedListNode *p) {
     return ret;
 }
 
-void isr_linked_list_free(struct ISRLinkedList *list, int deep) {
+void isr_linked_list_free(struct ISRLinkedList *list, const int deep) {
     struct ISRLinkedListNode *p = list->sentinal->next;
     while (p != list->sentinal) {
         struct ISRLinkedListNode *q = p->next;
