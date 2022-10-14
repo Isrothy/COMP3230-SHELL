@@ -20,21 +20,23 @@ void handle_sig_chld(int signum) {
     sigaddset(&set, SIGCHLD);
     sigprocmask(SIG_BLOCK, &set, &oset);
 
-    int stat;
-    pid_t pid = waitpid(-1, &stat, WNOHANG);
-    if (pid <= 0) {
-        return;
+    while (1) {
+        int stat;
+        pid_t pid = waitpid(-1, &stat, WNOHANG);
+        if (pid <= 0) {
+            break;
+        }
+        struct ProcInfo *info = proc_query(pid);
+        if (info == NULL) {
+            break;
+        }
+        if (!info->bg) {
+            shell_error("What the f**k? This should run in background\n");
+        }
+        shell_output("\n");
+        bgchild_notify(stat, info);
+        shell_output("%s", getPrompt());
+        proc_del(pid);
     }
-    struct ProcInfo *info = proc_query(pid);
-    if (info == NULL) {
-        return;
-    }
-    if (!info->bg) {
-        shell_error("What the f**k? This should run in background\n");
-    }
-    shell_output("\n");
-    bgchild_notify(stat, info);
-    shell_output("%s", getPrompt());
-    proc_del(pid);
     sigprocmask(SIG_BLOCK, &oset, NULL);
 }
