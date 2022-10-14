@@ -1,6 +1,5 @@
 #include "../include/proc_mag.h"
 #include "../include/isr_hash_table.h"
-#include "../include/shell_io.h"
 #include <signal.h>
 #include <stddef.h>
 #include <stdlib.h>

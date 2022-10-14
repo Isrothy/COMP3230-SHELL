@@ -22,7 +22,7 @@ char *readline() {
         return NULL;
     }
     while (1) {
-        char c = (char) getchar();
+        int c = getchar();
         if (c == EOF) {
             signal(SIGCHLD, SIG_DFL);
             proc_mag_release();

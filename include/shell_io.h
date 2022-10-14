@@ -23,7 +23,7 @@ const char *getErrorPrefix();
 char *readline();
 
 /**
- * @brief encapsuliate the output.
+ * @brief encapsulate the output.
  *
  * @param format string format just like printf
  * @param ... arguments
@@ -31,7 +31,7 @@ char *readline();
 void shell_output(const char *format, ...);
 
 /**
- * @brief encapsuliate the error output
+ * @brief encapsulate the error output
  *
  * @param format string format just like printf
  * @param ... arguments

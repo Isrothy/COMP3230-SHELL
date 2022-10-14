@@ -8,10 +8,10 @@
 #include <sys/types.h>
 
 /**
- * @brief retur result of executing a command
+ * @brief result of executing a command
  * pid: the process id
  * cmd: the command
- * usage: resorce usage
+ * usage: resource usage
  */
 struct ExeRet {
     pid_t pid;

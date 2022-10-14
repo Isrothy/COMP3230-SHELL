@@ -14,13 +14,13 @@ struct ISRLinkedListNode {
 };
 
 /**
- * @brief bie-direction generic linked list with a sentinal
- * sentinal->next is the head
- * sentinal->prev is the tail
+ * @brief bie-direction generic linked list with a sentinel
+ * sentinel->next is the head
+ * sentinel->prev is the tail
  *
  */
 struct ISRLinkedList {
-    struct ISRLinkedListNode *sentinal;
+    struct ISRLinkedListNode *sentinel;
 };
 
 /**
@@ -42,7 +42,7 @@ void isr_linked_list_insert_tail(struct ISRLinkedList *list, void *value);
  * @brief
  *
  * @param list
- * @return int none-zero if enpty
+ * @return int none-zero if empty
  */
 int isr_linked_list_is_empty(struct ISRLinkedList *list);
 
@@ -77,7 +77,7 @@ void isr_linked_list_free(struct ISRLinkedList *list, int deep);
  *
  */
 #define ISRLinkedListForEach(p, l)                                                                 \
-    for (struct ISRLinkedListNode * (p) = (l)->sentinal->next; (p) != (l)->sentinal;               \
+    for (struct ISRLinkedListNode * (p) = (l)->sentinel->next; (p) != (l)->sentinel;               \
          (p) = (p)->next)
 
 #endif

@@ -1,16 +1,12 @@
 #include "../include/shell_exe.h"
-#include "../include/proc_mag.h"
 #include "../include/shell_io.h"
 #include "../include/sig_handler.h"
 #include <bits/types/sigset_t.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/resource.h>
-#include <sys/times.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <unistd.h>
 
 
@@ -90,11 +86,10 @@ void exe_child(
 ) {
     if (background) {
         signal(SIGTTIN, sig_pause);
-    } else {
-        signal(SIGTSTP, SIG_DFL);
     }
     signal(SIGCHLD, SIG_DFL);
     signal(SIGINT, SIG_DFL);
+    signal(SIGTSTP, SIG_DFL);
 
     if (in_file != 0) {
         dup2(in_file, 0);
@@ -130,7 +125,7 @@ void exe_child(
     exit(0);
 }
 
-int exe_parent(
+void exe_parent(
     char **arg_list,
     const int in_file,
     const int out_file,
@@ -160,7 +155,7 @@ int exe_parent(
     if (background) {
         sigprocmask(SIG_SETMASK, &oset, NULL);
         signal(SIGINT, handle_sig_int);
-        return 0;
+        return;
     }
 
     while (1) {
@@ -221,7 +216,7 @@ int exe_parent(
     }
     sigprocmask(SIG_SETMASK, &oset, NULL);
     signal(SIGINT, handle_sig_int);
-    return 0;
+    return;
 }
 
 int exe_an_excmd(
@@ -248,7 +243,8 @@ int exe_an_excmd(
     if (child_pid == 0) {
         exe_child(arg_list, in_file, out_file, background, pgid, set);
     } else {
-        return exe_parent(arg_list, in_file, out_file, background, exe_ret, oset, child_pid);
+        exe_parent(arg_list, in_file, out_file, background, exe_ret, oset, child_pid);
+        return 0;
     }
     shell_error("What the f**k? You are not supposed to reach here");
     return -1;

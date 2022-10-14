@@ -52,7 +52,7 @@ struct CMDs {
 const char *translate_parse_error(int pe);
 
 /**
- * @brief reanslate user input into commands
+ * @brief translate user input into commands
  *
  * @param str input. a line of commands
  * @param cmds result of translation

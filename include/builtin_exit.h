@@ -4,7 +4,7 @@
 /**
  * @brief execute exit command
  * first check whether the input is valid.
- * Then, send SIGKILL to all background processes and release the resorces.
+ * Then, send SIGKILL to all background processes and release the resources.
  * Finally, exit CS3230 shell
  *
  * @param arg_list a list of argument. arg_list[0] should be "exit"

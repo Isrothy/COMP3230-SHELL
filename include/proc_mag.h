@@ -17,7 +17,7 @@ struct ProcInfo {
 
 /**
  * @brief initialize the process manager
- * should be called at the begining of the progream
+ * should be called at the beginning of the program
  *
  */
 void proc_mag_init();
@@ -47,7 +47,7 @@ struct ProcInfo *proc_query(pid_t pid);
 void proc_del(pid_t pid);
 
 /**
- * @brief release all the resorce of process manager
+ * @brief release all the resource of process manager
  *
  */
 void proc_mag_release();

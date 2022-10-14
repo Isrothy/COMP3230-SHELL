@@ -1,15 +1,11 @@
-#include "../include/builtin_exit.h"
 #include "../include/shell_exe.h"
 #include "../include/shell_io.h"
 #include <assert.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 
 void builtin_timex(const struct CMDs cmds) {
-    struct ISRLinkedListNode *first = cmds.command_list->sentinal->next;
+    struct ISRLinkedListNode *first = cmds.command_list->sentinel->next;
     if (first == NULL || first->value == NULL || ((char **) (first->value))[0] == NULL) {
         shell_error("3230shell: \" timeX \" cannot be a standalone command\n");
         return;

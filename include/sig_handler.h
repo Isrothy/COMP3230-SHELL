@@ -22,7 +22,7 @@ void handle_sig_int(int signum);
 void handle_sig_tstp(int signum);
 
 /**
- * @brief handle SIGCHLD. If the child ran in the background, then release the resorces and show the execution information
+ * @brief handle SIGCHLD. If the child ran in the background, then release the resources and show the execution information
  *
  * @param signum
  */

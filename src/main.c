@@ -1,6 +1,5 @@
 #include "../include/builtin_exit.h"
 #include "../include/builtin_timex.h"
-#include "../include/cmd_parser.h"
 #include "../include/proc_mag.h"
 #include "../include/shell_exe.h"
 #include "../include/shell_io.h"
@@ -29,7 +28,7 @@ int main() {
         if (pe < 0) {
             shell_error("%s\n", translate_parse_error(pe));
         } else if (!isr_linked_list_is_empty(cmds.command_list)) {
-            char ***args = (char ***) &cmds.command_list->sentinal->next->value;
+            char ***args = (char ***) &cmds.command_list->sentinel->next->value;
             if (strcmp((*args)[0], "exit") == 0) {
                 builtin_exit(*args);
             } else if (strcmp((*args)[0], "timeX") == 0) {

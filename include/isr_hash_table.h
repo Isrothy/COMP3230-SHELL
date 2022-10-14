@@ -46,7 +46,7 @@ isr_hash_table_new(size_t (*hash_func)(void *), int (*id_func)(void *, void *));
  * @brief insert a (key, value) pair into the hash table.
  * If the size of hash table is larger than capacity * alpha, reallocate double capacity for the hash table.
  * If the key exists, replace it with new value
- * @note After the insertation, the ownership of key and value is passed to the hash table.
+ * @note After the insertion, the ownership of key and value is passed to the hash table.
  *
  * @param table
  * @param key
