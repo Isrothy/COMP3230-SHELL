@@ -216,7 +216,6 @@ void exe_parent(
     }
     sigprocmask(SIG_SETMASK, &oset, NULL);
     signal(SIGINT, handle_sig_int);
-    return;
 }
 
 int exe_an_excmd(
